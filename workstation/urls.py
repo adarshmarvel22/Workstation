@@ -1,0 +1,36 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    # Home and main pages
+    path('', views.home, name='home'),
+    path('explore/', views.explore, name='explore'),
+    path('dashboard/', views.dashboard, name='dashboard'),
+
+    # Authentication
+    path('register/', views.user_register, name='register'),
+    path('login/', views.user_login, name='login'),
+    path('logout/', views.user_logout, name='logout'),
+
+    # Projects
+    path('projects/create/', views.create_project, name='create_project'),
+    path('projects/<slug:slug>/', views.project_detail, name='project_detail'),
+    path('projects/<slug:slug>/edit/', views.edit_project, name='edit_project'),
+    path('projects/<slug:slug>/support/', views.support_project, name='support_project'),
+    path('projects/<slug:slug>/join/', views.join_project, name='join_project'),
+
+    # User profiles
+    path('users/<str:username>/', views.profile, name='profile'),
+    path('profile/edit/', views.edit_profile, name='edit_profile'),
+
+    # Messages
+    path('messages/', views.messages_inbox, name='messages'),
+    path('messages/send/<str:username>/', views.send_message, name='send_message'),
+    path('conversations/<int:conversation_id>/', views.conversation_detail, name='conversation_detail'),
+
+    # Notifications
+    path('notifications/', views.notifications, name='notifications'),
+
+    # Thoughts
+    path('thoughts/create/', views.create_thought, name='create_thought'),
+]
