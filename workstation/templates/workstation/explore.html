@@ -1,0 +1,350 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Explore - Workstation Hub{% endblock %}
+
+{% block content %}
+<div class="explore-container">
+    <!-- Left Sidebar -->
+    <aside class="sidebar-left">
+        <div class="sidebar-section">
+            <h3>Discover</h3>
+            <div class="filter-group">
+                <button class="filter-btn active">All</button>
+                <button class="filter-btn">Founders</button>
+                <button class="filter-btn">Professionals</button>
+                <button class="filter-btn">Tech</button>
+                <button class="filter-btn">Students</button>
+                <button class="filter-btn">Nonprofit</button>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <h3>Filters</h3>
+
+            <div class="filter-section">
+                <label class="filter-label">Stage</label>
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="stage" value="idea">
+                        <span>Idea</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="stage" value="prototype">
+                        <span>Prototype</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="stage" value="mvp">
+                        <span>MVP</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <label class="filter-label">Collaboration</label>
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="collaboration" value="co-founders">
+                        <span>Co-founders</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="collaboration" value="mentors">
+                        <span>Mentors</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="collaboration" value="investors">
+                        <span>Investors</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <label class="filter-label">Status</label>
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="status" value="open" checked>
+                        <span>Open</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="status" value="closed">
+                        <span>Closed</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <h3>Trending Tags</h3>
+            <div class="tag-cloud">
+                {% for tag in trending_tags %}
+                <a href="?tags={{ tag.slug }}" class="tag">{{ tag.name }}</a>
+                {% endfor %}
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-area">
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <h1>Explore ideas, start ventures, and collaborate.</h1>
+            <p>For founders, professionals, tech enthusiasts, students, and everyone building the future.</p>
+
+            <div class="hero-actions">
+                <button class="btn btn-primary btn-lg" onclick="location.href='{% url 'create_project' %}'">
+                    <i class="fas fa-rocket"></i> Start a project
+                </button>
+                <button class="btn btn-outline btn-lg">
+                    <i class="fas fa-users"></i> Find collaborators
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-tab="projects">Projects</button>
+            <button class="tab" data-tab="ideas">Ideas</button>
+            <button class="tab" data-tab="people">People</button>
+
+            <div class="tabs-right">
+                <button class="icon-btn">
+                    <i class="fas fa-filter"></i> Refine
+                </button>
+                <button class="icon-btn">
+                    <i class="fas fa-sort"></i> Sort
+                </button>
+            </div>
+        </div>
+
+        <!-- Projects Grid -->
+        <div class="projects-grid" id="projectsGrid">
+            {% for project in projects %}
+            <div class="project-card">
+                <div class="project-image">
+                    {% if project.cover_image %}
+                        <img src="{{ project.cover_image.url }}" alt="{{ project.title }}">
+                    {% else %}
+                        <div class="project-placeholder">
+                            <i class="fas fa-code"></i>
+                        </div>
+                    {% endif %}
+                    <button class="bookmark-btn">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+
+                <div class="project-content">
+                    <h3 class="project-title">
+                        <a href="{% url 'project_detail' project.slug %}">{{ project.title }}</a>
+                    </h3>
+                    <p class="project-description">{{ project.short_description }}</p>
+
+                    <div class="project-tags">
+                        {% for tag in project.tags.all|slice:":3" %}
+                        <span class="tag">{{ tag.name }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="project-footer">
+                        <div class="project-avatars">
+                            {% for member in project.members.all|slice:":3" %}
+                            <div class="avatar-small">
+                                {% if member.profile_image %}
+                                    <img src="{{ member.profile_image.url }}" alt="{{ member.username }}">
+                                {% else %}
+                                    <div class="avatar-placeholder-small">{{ member.username|first|upper }}</div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="project-actions">
+                            <button class="action-btn" onclick="joinProject('{{ project.slug }}')">
+                                <i class="fas fa-user-plus"></i> Join
+                            </button>
+                            <button class="action-btn" onclick="supportProject('{{ project.slug }}')">
+                                <i class="fas fa-heart"></i> Support
+                            </button>
+                            <button class="action-btn">
+                                <i class="fas fa-comment"></i> Chat
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="fas fa-search"></i>
+                <h3>No projects found</h3>
+                <p>Try adjusting your filters or search criteria</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if projects.has_other_pages %}
+        <div class="pagination">
+            {% if projects.has_previous %}
+            <a href="?page={{ projects.previous_page_number }}" class="page-btn">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            {% endif %}
+
+            {% for num in projects.paginator.page_range %}
+                {% if projects.number == num %}
+                <span class="page-btn active">{{ num }}</span>
+                {% elif num > projects.number|add:'-3' and num < projects.number|add:'3' %}
+                <a href="?page={{ num }}" class="page-btn">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if projects.has_next %}
+            <a href="?page={{ projects.next_page_number }}" class="page-btn">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Right Sidebar -->
+    <aside class="sidebar-right">
+        {% if user.is_authenticated %}
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    {% if user.profile_image %}
+                        <img src="{{ user.profile_image.url }}" alt="{{ user.username }}">
+                    {% else %}
+                        <div class="avatar-placeholder-large">{{ user.username|first|upper }}</div>
+                    {% endif %}
+                </div>
+                <button class="edit-btn">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+            </div>
+
+            <h3>{{ user.get_full_name|default:user.username }}</h3>
+            <p class="profile-subtitle">{{ user.title|default:"Member" }}</p>
+
+            <div class="profile-completeness">
+                <div class="completeness-header">
+                    <span>Profile completeness</span>
+                    <span class="percentage">{{ user.profile_completeness }}%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ user.profile_completeness }}%"></div>
+                </div>
+            </div>
+
+            <div class="profile-actions">
+                <button class="action-btn-full">
+                    <i class="fas fa-rocket"></i> Start
+                </button>
+                <button class="action-btn-full">
+                    <i class="fas fa-lightbulb"></i> Propose
+                </button>
+                <button class="action-btn-full">
+                    <i class="fas fa-handshake"></i> Collaborate
+                </button>
+            </div>
+        </div>
+
+        <div class="messages-card">
+            <div class="card-header">
+                <h3>Messages</h3>
+                <button class="btn-text" onclick="location.href='{% url 'messages' %}'">Open</button>
+            </div>
+
+            <div class="message-list">
+                <div class="message-item">
+                    <div class="message-avatar">
+                        <img src="{% static 'images/avatar1.jpg' %}" alt="Jamie">
+                    </div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <strong>Jamie</strong>
+                            <span class="time">2m</span>
+                        </div>
+                        <p>Would love to help on the API data...</p>
+                    </div>
+                </div>
+
+                <div class="message-item">
+                    <div class="message-avatar">
+                        <img src="{% static 'images/avatar2.jpg' %}" alt="Priya">
+                    </div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <strong>Priya</strong>
+                            <span class="time">1h</span>
+                        </div>
+                        <p>Can we discuss the mobile roadmap?</p>
+                    </div>
+                </div>
+
+                <div class="message-item">
+                    <div class="message-avatar">
+                        <img src="{% static 'images/avatar3.jpg' %}" alt="Sam">
+                    </div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <strong>Sam</strong>
+                            <span class="time">Yesterday</span>
+                        </div>
+                        <p>I know a hardware partner interested...</p>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-full" onclick="location.href='{% url 'messages' %}'">View all</button>
+        </div>
+
+        <div class="quick-actions-card">
+            <h3>Quick actions</h3>
+            <button class="quick-action-btn">
+                <i class="fas fa-lightbulb"></i> Propose an idea
+                <i class="fas fa-arrow-right"></i>
+            </button>
+            <button class="quick-action-btn">
+                <i class="fas fa-comment"></i> Share a thought
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+        {% else %}
+        <div class="auth-card">
+            <h3>Join Workstation Hub</h3>
+            <p>Connect with founders, collaborate on projects, and build the future together.</p>
+            <button class="btn btn-primary btn-full" onclick="location.href='{% url 'register' %}'">
+                Sign up
+            </button>
+            <button class="btn btn-outline btn-full" onclick="location.href='{% url 'login' %}'">
+                Sign in
+            </button>
+        </div>
+        {% endif %}
+    </aside>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function supportProject(slug) {
+        fetch(`/projects/${slug}/support/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            showToast(data.supported ? 'Project supported!' : 'Support removed');
+        });
+    }
+
+    function joinProject(slug) {
+        window.location.href = `/projects/${slug}/`;
+    }
+</script>
+{% endblock %}

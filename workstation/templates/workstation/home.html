@@ -1,0 +1,457 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home - Workstation Hub{% endblock %}
+
+{% block content %}
+<div class="home-container">
+    <!-- Hero Section -->
+    <section class="landing-hero">
+        <div class="hero-content">
+            <h1 class="hero-title">Build the Future Together</h1>
+            <p class="hero-subtitle">
+                Connect with founders, collaborate on projects, and turn your ideas into reality.
+                Join a community of makers, innovators, and changemakers.
+            </p>
+            <div class="hero-actions">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'explore' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-compass"></i> Explore Projects
+                    </a>
+                    <a href="{% url 'create_project' %}" class="btn btn-outline btn-lg">
+                        <i class="fas fa-plus"></i> Start a Project
+                    </a>
+                {% else %}
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-rocket"></i> Get Started
+                    </a>
+                    <a href="{% url 'explore' %}" class="btn btn-outline btn-lg">
+                        <i class="fas fa-compass"></i> Explore
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="hero-stats">
+            <div class="stat-item">
+                <div class="stat-number">1,000+</div>
+                <div class="stat-label">Active Projects</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">5,000+</div>
+                <div class="stat-label">Community Members</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">50+</div>
+                <div class="stat-label">Success Stories</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Projects -->
+    <section class="featured-section">
+        <div class="section-header">
+            <h2>Featured Projects</h2>
+            <a href="{% url 'explore' %}" class="btn btn-text">View all <i class="fas fa-arrow-right"></i></a>
+        </div>
+
+        <div class="featured-grid">
+            {% for project in featured_projects %}
+            <div class="featured-card">
+                <div class="featured-image">
+                    {% if project.cover_image %}
+                        <img src="{{ project.cover_image.url }}" alt="{{ project.title }}">
+                    {% else %}
+                        <div class="featured-placeholder">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                    {% endif %}
+                    <div class="featured-badge">Featured</div>
+                </div>
+                <div class="featured-content">
+                    <div class="featured-tags">
+                        {% for tag in project.tags.all|slice:":2" %}
+                        <span class="tag">{{ tag.name }}</span>
+                        {% endfor %}
+                    </div>
+                    <h3><a href="{% url 'project_detail' project.slug %}">{{ project.title }}</a></h3>
+                    <p>{{ project.short_description }}</p>
+                    <div class="featured-footer">
+                        <div class="featured-author">
+                            <div class="avatar-small">
+                                {% if project.creator.profile_image %}
+                                    <img src="{{ project.creator.profile_image.url }}" alt="{{ project.creator.username }}">
+                                {% else %}
+                                    <div class="avatar-placeholder-small">{{ project.creator.username|first|upper }}</div>
+                                {% endif %}
+                            </div>
+                            <span>{{ project.creator.get_full_name|default:project.creator.username }}</span>
+                        </div>
+                        <div class="featured-stats">
+                            <span><i class="fas fa-heart"></i> {{ project.supporters.count }}</span>
+                            <span><i class="fas fa-users"></i> {{ project.members.count }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works">
+        <h2>How It Works</h2>
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <h3>1. Join the Community</h3>
+                <p>Create your profile and tell us about your skills, interests, and goals.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3>2. Discover Projects</h3>
+                <p>Browse projects, ideas, and ventures that match your interests.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-icon">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <h3>3. Collaborate</h3>
+                <p>Join projects, find co-founders, and build something amazing together.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-icon">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <h3>4. Launch & Grow</h3>
+                <p>Get support, feedback, and resources to take your project to the next level.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trending Tags -->
+    <section class="trending-section">
+        <div class="section-header">
+            <h2>Trending Topics</h2>
+        </div>
+        <div class="trending-tags-large">
+            {% for tag in trending_tags %}
+            <a href="{% url 'explore' %}?tags={{ tag.slug }}" class="trending-tag">
+                {{ tag.name }}
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="cta-section">
+        <div class="cta-content">
+            <h2>Ready to Start Building?</h2>
+            <p>Join thousands of founders, developers, and creators building the future.</p>
+            {% if not user.is_authenticated %}
+            <a href="{% url 'register' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-rocket"></i> Join Workstation Hub
+            </a>
+            {% else %}
+            <a href="{% url 'create_project' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus"></i> Start Your Project
+            </a>
+            {% endif %}
+        </div>
+    </section>
+</div>
+
+<style>
+.home-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.landing-hero {
+    text-align: center;
+    padding: 6rem 2rem;
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+    border-radius: 16px;
+    margin-bottom: 4rem;
+}
+
+.hero-title {
+    font-size: 56px;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-primary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-subtitle {
+    font-size: 18px;
+    color: var(--text-secondary);
+    max-width: 700px;
+    margin: 0 auto 2rem;
+    line-height: 1.8;
+}
+
+.hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 4rem;
+    margin-top: 4rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--accent-primary);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.featured-section,
+.how-it-works,
+.trending-section {
+    margin-bottom: 4rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.section-header h2 {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.featured-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.featured-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.featured-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.featured-image {
+    height: 200px;
+    position: relative;
+}
+
+.featured-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.featured-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--bg-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+    color: var(--text-muted);
+}
+
+.featured-badge {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    background: var(--accent-primary);
+    color: white;
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.featured-content {
+    padding: 1.5rem;
+}
+
+.featured-tags {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.featured-content h3 {
+    font-size: 18px;
+    margin-bottom: 0.75rem;
+}
+
+.featured-content h3 a {
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.featured-content h3 a:hover {
+    color: var(--accent-primary);
+}
+
+.featured-content p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.featured-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.featured-author {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.featured-stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.step-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+}
+
+.step-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--accent-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    font-size: 28px;
+    color: white;
+}
+
+.step-card h3 {
+    font-size: 18px;
+    margin-bottom: 0.75rem;
+}
+
+.step-card p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.trending-tags-large {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.trending-tag {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 14px;
+    text-decoration: none;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.trending-tag:hover {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.cta-section {
+    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+    border-radius: 16px;
+    padding: 4rem 2rem;
+    text-align: center;
+    margin-top: 4rem;
+}
+
+.cta-content h2 {
+    font-size: 36px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 1rem;
+}
+
+.cta-content p {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 2rem;
+}
+
+.cta-content .btn {
+    background: white;
+    color: var(--accent-primary);
+}
+
+.cta-content .btn:hover {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 36px;
+    }
+
+    .hero-stats {
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .featured-grid,
+    .steps-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

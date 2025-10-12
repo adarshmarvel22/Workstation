@@ -1,0 +1,116 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Workstation Hub{% endblock %}</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-left">
+                <div class="logo">
+                    <span class="logo-icon">WH</span>
+                    <div class="logo-text">
+                        <span class="logo-title">Workstation</span>
+                        <span class="logo-subtitle">Hub</span>
+                    </div>
+                </div>
+
+                <div class="nav-links">
+                    <a href="{% url 'explore' %}" class="nav-link {% if request.resolver_match.url_name == 'explore' %}active{% endif %}">Explore</a>
+                    <a href="{% url 'home' %}" class="nav-link">Start</a>
+                    <a href="#" class="nav-link">Collaborate</a>
+                    <a href="#" class="nav-link">Join</a>
+                    <a href="#" class="nav-link">Support</a>
+                    <a href="#" class="nav-link">Propose</a>
+                </div>
+            </div>
+
+            <div class="nav-right">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search projects, ideas, people..." id="globalSearch">
+                </div>
+
+                {% if user.is_authenticated %}
+                    <button class="icon-btn">
+                        <i class="far fa-comment-dots"></i>
+                    </button>
+
+                    <button class="icon-btn" id="notificationBtn">
+                        <i class="far fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </button>
+
+                    <button class="btn btn-primary" onclick="location.href='{% url 'create_project' %}'">
+                        <i class="fas fa-plus"></i> Create
+                    </button>
+
+                    <div class="user-menu">
+                        <button class="user-avatar" id="userMenuBtn">
+                            {% if user.profile_image %}
+                                <img src="{{ user.profile_image.url }}" alt="{{ user.username }}">
+                            {% else %}
+                                <div class="avatar-placeholder">{{ user.username|first|upper }}</div>
+                            {% endif %}
+                        </button>
+
+                        <div class="dropdown-menu" id="userDropdown">
+                            <a href="{% url 'profile' user.username %}">
+                                <i class="fas fa-user"></i> Profile
+                            </a>
+                            <a href="{% url 'dashboard' %}">
+                                <i class="fas fa-th-large"></i> Dashboard
+                            </a>
+                            <a href="{% url 'edit_profile' %}">
+                                <i class="fas fa-cog"></i> Settings
+                            </a>
+                            <hr>
+                            <a href="{% url 'logout' %}">
+                                <i class="fas fa-sign-out-alt"></i> Sign out
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-outline">
+                        <i class="fas fa-sign-in-alt"></i> Sign in
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Workstation Hub. Built with ❤️ for the maker community.</p>
+        </div>
+    </footer>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
