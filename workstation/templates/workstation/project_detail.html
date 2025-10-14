@@ -1,0 +1,778 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ project.title }} - Workstation Hub{% endblock %}
+
+{% block content %}
+<div class="project-detail-wrapper">
+    <!-- Project Hero -->
+    <div class="project-hero">
+        {% if project.cover_image %}
+            <img src="{{ project.cover_image.url }}" alt="{{ project.title }}">
+        {% else %}
+            <div class="hero-placeholder">
+                <i class="fas fa-project-diagram"></i>
+            </div>
+        {% endif %}
+        <div class="hero-overlay">
+            <div class="hero-content">
+                <div class="breadcrumb">
+                    <a href="{% url 'explore' %}">Projects</a>
+                    <span>/</span>
+                    <span>{{ project.title }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="project-detail-container">
+        <!-- Main Content -->
+        <div class="project-main-content">
+            <div class="project-header">
+                <div class="project-title-section">
+                    <h1>{{ project.title }}</h1>
+                    <div class="project-badges">
+                        <span class="badge badge-{{ project.stage }}">{{ project.get_stage_display }}</span>
+                        <span class="badge badge-{{ project.status }}">{{ project.get_status_display }}</span>
+                        {% if project.collaboration_needed %}
+                        <span class="badge badge-collaboration">
+                            <i class="fas fa-users"></i> Looking for {{ project.get_collaboration_needed_display }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Stats -->
+            <div class="project-stats">
+                <div class="stat-item">
+                    <i class="fas fa-eye"></i>
+                    <span>{{ project.views_count }} views</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-users"></i>
+                    <span>{{ project.members.count }} members</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-heart"></i>
+                    <span>{{ project.supporters.count }} supporters</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-calendar"></i>
+                    <span>Created {{ project.created_at|date:"M d, Y" }}</span>
+                </div>
+            </div>
+
+            <!-- Project Tags -->
+            <div class="project-tags-section">
+                {% for tag in project.tags.all %}
+                <a href="{% url 'explore' %}?tags={{ tag.slug }}" class="tag">{{ tag.name }}</a>
+                {% endfor %}
+            </div>
+
+            <!-- Project Description -->
+            <div class="project-section">
+                <h2>About this project</h2>
+                <div class="project-description">
+                    {{ project.description|linebreaks }}
+                </div>
+            </div>
+
+            <!-- Project Updates -->
+            {% if updates %}
+            <div class="project-section">
+                <h2>Recent Updates</h2>
+                <div class="updates-list">
+                    {% for update in updates %}
+                    <div class="update-item">
+                        <div class="update-header">
+                            <h3>{{ update.title }}</h3>
+                            <span class="update-date">{{ update.created_at|date:"M d, Y" }}</span>
+                        </div>
+                        <p>{{ update.content|truncatewords:50 }}</p>
+                        {% if update.image %}
+                        <img src="{{ update.image.url }}" alt="{{ update.title }}" class="update-image">
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Comments Section -->
+            <div class="project-section">
+                <h2>Discussion ({{ comments.count }})</h2>
+
+                {% if user.is_authenticated %}
+                <form method="post" action="#" class="comment-form">
+                    {% csrf_token %}
+                    <textarea name="content" placeholder="Share your thoughts..." rows="3"></textarea>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-comment"></i> Post Comment
+                    </button>
+                </form>
+                {% endif %}
+
+                <div class="comments-list">
+                    {% for comment in comments %}
+                    <div class="comment-item">
+                        <div class="comment-avatar">
+                            {% if comment.user.profile_image %}
+                                <img src="{{ comment.user.profile_image.url }}" alt="{{ comment.user.username }}">
+                            {% else %}
+                                <div class="avatar-placeholder">{{ comment.user.username|first|upper }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <strong>{{ comment.user.get_full_name|default:comment.user.username }}</strong>
+                                <span class="comment-date">{{ comment.created_at|timesince }} ago</span>
+                            </div>
+                            <p>{{ comment.content }}</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="empty-state-small">
+                        <p>No comments yet. Be the first to share your thoughts!</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <aside class="project-sidebar-detail">
+            <!-- Action Card -->
+            <div class="sidebar-card action-card">
+                {% if user.is_authenticated %}
+                    {% if is_member %}
+                        <div class="member-badge">
+                            <i class="fas fa-check-circle"></i>
+                            You're a team member
+                        </div>
+                        <button class="btn btn-outline btn-full" onclick="location.href='{% url 'messages' %}'">
+                            <i class="fas fa-comment"></i> Message Team
+                        </button>
+                    {% elif has_join_request %}
+                        <div class="pending-badge">
+                            <i class="fas fa-clock"></i>
+                            Join request pending
+                        </div>
+                    {% else %}
+                        <button class="btn btn-primary btn-full btn-lg" onclick="showJoinModal()">
+                            <i class="fas fa-user-plus"></i> Join Project
+                        </button>
+                    {% endif %}
+
+                    <button class="btn btn-outline btn-full" onclick="supportProject('{{ project.slug }}', this)">
+                        <i class="fas fa-heart {% if is_supporter %}fas{% else %}far{% endif %}"></i>
+                        {% if is_supporter %}Supported{% else %}Support{% endif %}
+                        ({{ project.supporters.count }})
+                    </button>
+
+                    <button class="btn btn-outline btn-full" onclick="shareProject()">
+                        <i class="fas fa-share"></i> Share
+                    </button>
+                {% else %}
+                    <p class="text-center text-secondary mb-3">Sign in to join or support this project</p>
+                    <button class="btn btn-primary btn-full" onclick="location.href='{% url 'login' %}'">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
+                    </button>
+                {% endif %}
+            </div>
+
+            <!-- Creator Card -->
+            <div class="sidebar-card">
+                <h3>Created by</h3>
+                <div class="creator-info">
+                    <div class="creator-avatar">
+                        {% if project.creator.profile_image %}
+                            <img src="{{ project.creator.profile_image.url }}" alt="{{ project.creator.username }}">
+                        {% else %}
+                            <div class="avatar-placeholder-large">{{ project.creator.username|first|upper }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="creator-details">
+                        <h4><a href="{% url 'profile' project.creator.username %}">{{ project.creator.get_full_name|default:project.creator.username }}</a></h4>
+                        <p>{{ project.creator.title|default:"Member" }}</p>
+                        <span class="badge-small">{{ project.creator.get_user_type_display }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Members Card -->
+            <div class="sidebar-card">
+                <h3>Team ({{ members.count }})</h3>
+                <div class="members-list-sidebar">
+                    {% for membership in members %}
+                    <div class="member-row">
+                        <div class="member-avatar-small">
+                            {% if membership.user.profile_image %}
+                                <img src="{{ membership.user.profile_image.url }}" alt="{{ membership.user.username }}">
+                            {% else %}
+                                <div class="avatar-placeholder-small">{{ membership.user.username|first|upper }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="member-info">
+                            <a href="{% url 'profile' membership.user.username %}">{{ membership.user.username }}</a>
+                            <span class="role-badge">{{ membership.get_role_display }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Project Info Card -->
+            <div class="sidebar-card">
+                <h3>Project Details</h3>
+                <div class="info-list">
+                    <div class="info-row">
+                        <span class="info-label">Type</span>
+                        <span>{{ project.get_project_type_display }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Stage</span>
+                        <span>{{ project.get_stage_display }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Status</span>
+                        <span>{{ project.get_status_display }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Last Updated</span>
+                        <span>{{ project.updated_at|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<!-- Join Modal -->
+<div id="joinModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Join {{ project.title }}</h2>
+            <button class="modal-close" onclick="closeJoinModal()">&times;</button>
+        </div>
+        <form method="post" action="{% url 'join_project' project.slug %}" class="modal-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Why do you want to join?</label>
+                <textarea name="message" rows="4" placeholder="Tell the team why you're interested..." required></textarea>
+            </div>
+            <div class="form-group">
+                <label>What role would you like?</label>
+                <input type="text" name="role" placeholder="e.g., Frontend Developer, Designer" required>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i> Send Request
+                </button>
+                <button type="button" class="btn btn-outline" onclick="closeJoinModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.project-detail-wrapper {
+    max-width: 100%;
+}
+
+.project-hero {
+    width: 100%;
+    height: 400px;
+    position: relative;
+    background: var(--bg-tertiary);
+    overflow: hidden;
+}
+
+.project-hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hero-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 120px;
+    color: var(--text-muted);
+}
+
+.hero-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+    padding: 2rem;
+}
+
+.breadcrumb {
+    color: white;
+    font-size: 14px;
+}
+
+.breadcrumb a {
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+}
+
+.breadcrumb span {
+    margin: 0 0.5rem;
+}
+
+.project-detail-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 2rem;
+}
+
+.project-main-content {
+    min-width: 0;
+}
+
+.project-header {
+    margin-bottom: 2rem;
+}
+
+.project-title-section h1 {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.project-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.badge {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.badge-idea { background: rgba(147, 51, 234, 0.2); color: #a855f7; }
+.badge-prototype { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+.badge-mvp { background: rgba(16, 185, 129, 0.2); color: var(--accent-primary); }
+.badge-growth { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+.badge-open { background: rgba(16, 185, 129, 0.2); color: var(--accent-primary); }
+.badge-closed { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+.badge-collaboration { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+
+.project-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    padding: 1.5rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin-bottom: 2rem;
+}
+
+.project-stats .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.project-stats .stat-item i {
+    color: var(--accent-primary);
+}
+
+.project-tags-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.project-section {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.project-section h2 {
+    font-size: 24px;
+    margin-bottom: 1.5rem;
+}
+
+.project-description {
+    color: var(--text-secondary);
+    line-height: 1.8;
+    font-size: 15px;
+}
+
+.updates-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.update-item {
+    padding: 1.5rem;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+}
+
+.update-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.update-header h3 {
+    font-size: 18px;
+}
+
+.update-date {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.update-image {
+    width: 100%;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.comment-form {
+    margin-bottom: 2rem;
+}
+
+.comment-form textarea {
+    width: 100%;
+    padding: 1rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 14px;
+    margin-bottom: 1rem;
+    resize: vertical;
+}
+
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.comment-item {
+    display: flex;
+    gap: 1rem;
+}
+
+.comment-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.comment-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.comment-content {
+    flex: 1;
+}
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.comment-date {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.comment-content p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.project-sidebar-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: sticky;
+    top: 80px;
+    height: fit-content;
+}
+
+.sidebar-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.sidebar-card h3 {
+    font-size: 16px;
+    margin-bottom: 1rem;
+}
+
+.action-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.member-badge,
+.pending-badge {
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.member-badge {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--accent-primary);
+}
+
+.pending-badge {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.creator-info {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.creator-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.creator-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.creator-details h4 {
+    font-size: 15px;
+    margin-bottom: 0.25rem;
+}
+
+.creator-details h4 a {
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.creator-details p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.badge-small {
+    font-size: 11px;
+    padding: 0.25rem 0.5rem;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    color: var(--text-secondary);
+}
+
+.members-list-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.member-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.member-avatar-small {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.member-avatar-small img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.member-info a {
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.role-badge {
+    display: block;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.info-label {
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h2 {
+    font-size: 20px;
+}
+
+.modal-close {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 28px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.modal-form {
+    padding: 1.5rem;
+}
+
+.modal-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.modal-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.modal-form textarea,
+.modal-form input {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+@media (max-width: 968px) {
+    .project-detail-container {
+        grid-template-columns: 1fr;
+    }
+
+    .project-sidebar-detail {
+        position: static;
+    }
+}
+</style>
+
+<script>
+function showJoinModal() {
+    document.getElementById('joinModal').classList.add('show');
+}
+
+function closeJoinModal() {
+    document.getElementById('joinModal').classList.remove('show');
+}
+
+function shareProject() {
+    if (navigator.share) {
+        navigator.share({
+            title: '{{ project.title }}',
+            text: '{{ project.short_description }}',
+            url: window.location.href
+        });
+    } else {
+        copyToClipboard(window.location.href);
+    }
+}
+</script>
+{% endblock %}

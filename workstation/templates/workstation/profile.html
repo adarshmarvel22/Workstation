@@ -1,0 +1,572 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ profile_user.get_full_name|default:profile_user.username }} - Workstation Hub{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- Profile Header -->
+    <div class="profile-header-section">
+        <div class="profile-cover">
+            <div class="cover-gradient"></div>
+        </div>
+
+        <div class="profile-info-header">
+            <div class="profile-avatar-large">
+                {% if profile_user.profile_image %}
+                    <img src="{{ profile_user.profile_image.url }}" alt="{{ profile_user.username }}">
+                {% else %}
+                    <div class="avatar-placeholder-xl">{{ profile_user.username|first|upper }}</div>
+                {% endif %}
+            </div>
+
+            <div class="profile-meta">
+                <h1>{{ profile_user.get_full_name|default:profile_user.username }}</h1>
+                <p class="profile-title">{{ profile_user.title|default:"Member" }}</p>
+                <div class="profile-tags">
+                    <span class="badge">{{ profile_user.get_user_type_display }}</span>
+                    {% if profile_user.location %}
+                    <span class="location">
+                        <i class="fas fa-map-marker-alt"></i> {{ profile_user.location }}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="profile-actions">
+                {% if user == profile_user %}
+                    <button class="btn btn-outline" onclick="location.href='{% url 'edit_profile' %}'">
+                        <i class="fas fa-edit"></i> Edit Profile
+                    </button>
+                {% else %}
+                    <button class="btn btn-primary" onclick="location.href='{% url 'send_message' profile_user.username %}'">
+                        <i class="fas fa-envelope"></i> Message
+                    </button>
+                    <button class="btn btn-outline">
+                        <i class="fas fa-user-plus"></i> Follow
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Content -->
+    <div class="profile-content-area">
+        <div class="profile-main">
+            <!-- About Section -->
+            {% if profile_user.bio %}
+            <div class="profile-section">
+                <h2>About</h2>
+                <p>{{ profile_user.bio|linebreaks }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Skills Section -->
+            {% if profile_user.skills.all %}
+            <div class="profile-section">
+                <h2>Skills</h2>
+                <div class="skills-grid">
+                    {% for skill in profile_user.skills.all %}
+                    <div class="skill-tag">
+                        <i class="fas fa-check-circle"></i>
+                        {{ skill.name }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Projects Section -->
+            <div class="profile-section">
+                <h2>Projects ({{ created_projects.count }})</h2>
+                <div class="profile-projects-grid">
+                    {% for project in created_projects %}
+                    <div class="profile-project-card">
+                        <div class="project-card-image">
+                            {% if project.cover_image %}
+                                <img src="{{ project.cover_image.url }}" alt="{{ project.title }}">
+                            {% else %}
+                                <div class="project-card-placeholder">
+                                    <i class="fas fa-project-diagram"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="project-card-content">
+                            <h3><a href="{% url 'project_detail' project.slug %}">{{ project.title }}</a></h3>
+                            <p>{{ project.short_description|truncatewords:15 }}</p>
+                            <div class="project-card-meta">
+                                <span><i class="fas fa-users"></i> {{ project.members.count }}</span>
+                                <span><i class="fas fa-heart"></i> {{ project.supporters.count }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="empty-state-small">
+                        <p>No projects yet</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Collaborations Section -->
+            {% if joined_projects %}
+            <div class="profile-section">
+                <h2>Collaborations ({{ joined_projects.count }})</h2>
+                <div class="profile-projects-grid">
+                    {% for project in joined_projects %}
+                    <div class="profile-project-card">
+                        <div class="project-card-image">
+                            {% if project.cover_image %}
+                                <img src="{{ project.cover_image.url }}" alt="{{ project.title }}">
+                            {% else %}
+                                <div class="project-card-placeholder">
+                                    <i class="fas fa-project-diagram"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="project-card-content">
+                            <h3><a href="{% url 'project_detail' project.slug %}">{{ project.title }}</a></h3>
+                            <p>{{ project.short_description|truncatewords:15 }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Recent Thoughts -->
+            {% if recent_thoughts %}
+            <div class="profile-section">
+                <h2>Recent Thoughts</h2>
+                <div class="thoughts-list">
+                    {% for thought in recent_thoughts %}
+                    <div class="thought-item">
+                        <p>{{ thought.content }}</p>
+                        <div class="thought-meta">
+                            <span>{{ thought.created_at|timesince }} ago</span>
+                            <span><i class="fas fa-heart"></i> {{ thought.likes.count }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Profile Sidebar -->
+        <aside class="profile-sidebar">
+            <!-- Stats Card -->
+            <div class="sidebar-card">
+                <h3>Stats</h3>
+                <div class="stats-list">
+                    <div class="stat-row">
+                        <span class="stat-label">Projects</span>
+                        <span class="stat-value">{{ created_projects.count }}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Collaborations</span>
+                        <span class="stat-value">{{ joined_projects.count }}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Supported</span>
+                        <span class="stat-value">{{ supported_projects.count }}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Member since</span>
+                        <span class="stat-value">{{ profile_user.created_at|date:"M Y" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Links Card -->
+            <div class="sidebar-card">
+                <h3>Links</h3>
+                <div class="links-list">
+                    {% if profile_user.website %}
+                    <a href="{{ profile_user.website }}" target="_blank" class="link-item">
+                        <i class="fas fa-globe"></i>
+                        <span>Website</span>
+                        <i class="fas fa-external-link-alt"></i>
+                    </a>
+                    {% endif %}
+
+                    {% if profile_user.github %}
+                    <a href="{{ profile_user.github }}" target="_blank" class="link-item">
+                        <i class="fab fa-github"></i>
+                        <span>GitHub</span>
+                        <i class="fas fa-external-link-alt"></i>
+                    </a>
+                    {% endif %}
+
+                    {% if profile_user.linkedin %}
+                    <a href="{{ profile_user.linkedin }}" target="_blank" class="link-item">
+                        <i class="fab fa-linkedin"></i>
+                        <span>LinkedIn</span>
+                        <i class="fas fa-external-link-alt"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Interests Card -->
+            {% if profile_user.interests.all %}
+            <div class="sidebar-card">
+                <h3>Interests</h3>
+                <div class="interests-tags">
+                    {% for interest in profile_user.interests.all %}
+                    <a href="{% url 'explore' %}?tags={{ interest.slug }}" class="tag">{{ interest.name }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </aside>
+    </div>
+</div>
+
+<style>
+.profile-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.profile-header-section {
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.profile-cover {
+    height: 250px;
+    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+    position: relative;
+}
+
+.cover-gradient {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    background: linear-gradient(to top, var(--bg-primary) 0%, transparent 100%);
+}
+
+.profile-info-header {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    position: relative;
+    margin-top: -80px;
+    display: flex;
+    align-items: flex-end;
+    gap: 2rem;
+}
+
+.profile-avatar-large {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    border: 5px solid var(--bg-primary);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.profile-avatar-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder-xl {
+    width: 100%;
+    height: 100%;
+    background: var(--accent-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 60px;
+    font-weight: 700;
+    color: white;
+}
+
+.profile-meta {
+    flex: 1;
+    padding-bottom: 1rem;
+}
+
+.profile-meta h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.profile-title {
+    font-size: 16px;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.profile-tags {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.location {
+    color: var(--text-muted);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 1rem;
+    padding-bottom: 1rem;
+}
+
+.profile-content-area {
+    padding: 0 2rem 2rem;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 2rem;
+}
+
+.profile-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.profile-section {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+.profile-section h2 {
+    font-size: 20px;
+    margin-bottom: 1.5rem;
+}
+
+.profile-section p {
+    color: var(--text-secondary);
+    line-height: 1.8;
+}
+
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.75rem;
+}
+
+.skill-tag {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 14px;
+}
+
+.skill-tag i {
+    color: var(--accent-primary);
+}
+
+.profile-projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.profile-project-card {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.profile-project-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+.project-card-image {
+    height: 150px;
+    background: var(--bg-card);
+    overflow: hidden;
+}
+
+.project-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.project-card-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    color: var(--text-muted);
+}
+
+.project-card-content {
+    padding: 1.25rem;
+}
+
+.project-card-content h3 {
+    font-size: 16px;
+    margin-bottom: 0.5rem;
+}
+
+.project-card-content h3 a {
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.project-card-content h3 a:hover {
+    color: var(--accent-primary);
+}
+
+.project-card-content p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.project-card-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.thoughts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.thought-item {
+    padding: 1.25rem;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+}
+
+.thought-item p {
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 0.75rem;
+}
+
+.thought-meta {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.profile-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: sticky;
+    top: 80px;
+    height: fit-content;
+}
+
+.stats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.stat-value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.links-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.link-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.link-item:hover {
+    background: var(--bg-hover);
+    color: var(--accent-primary);
+}
+
+.link-item i:first-child {
+    width: 20px;
+}
+
+.link-item span {
+    flex: 1;
+    font-size: 14px;
+}
+
+.link-item i:last-child {
+    font-size: 12px;
+    opacity: 0.5;
+}
+
+.interests-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.empty-state-small {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+}
+
+@media (max-width: 968px) {
+    .profile-content-area {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-info-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .profile-actions {
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
