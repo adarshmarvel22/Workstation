@@ -14,3 +14,5 @@ A comprehensive platform for founders, professionals, tech enthusiasts, and stud
 - **Notifications**: Real-time notifications for activities
 - **Search & Filter**: Advanced filtering by tags, stages, user types
 - **RESTful API**: Complete API for mobile/frontend integration
+
+- <img width="1865" height="819" alt="image" src="https://github.com/user-attachments/assets/c4d6443d-2f32-44f7-81c8-9c9fb643d062" />
