@@ -1153,3 +1153,11 @@ body {
         width: 150px;
     }
 }
+
+.form-section input.form-input {
+    min-width: -webkit-fill-available !important;
+    min-height: 37px !important;
+    border: 1px solid #06b206 !important;
+    border-radius: 10px !important;
+    padding: 5px !important;
+}

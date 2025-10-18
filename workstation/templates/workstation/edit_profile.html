@@ -1,0 +1,394 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Profile - Workstation Hub{% endblock %}
+
+{% block content %}
+<div class="edit-profile-container">
+    <div class="edit-profile-wrapper">
+        <div class="edit-header">
+            <div>
+                <h1>Edit Profile</h1>
+                <p>Update your information and preferences</p>
+            </div>
+            <a href="{% url 'profile' user.username %}" class="btn btn-outline">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="edit-profile-form">
+            {% csrf_token %}
+
+            <!-- Profile Picture Section -->
+            <div class="form-section">
+                <h2>Profile Picture</h2>
+                <div class="profile-image-upload">
+                    <div class="current-avatar">
+                        {% if user.profile_image %}
+                            <img src="{{ user.profile_image.url }}" alt="{{ user.username }}" id="avatarPreview">
+                        {% else %}
+                            <div class="avatar-placeholder-edit" id="avatarPreview">{{ user.username|first|upper }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="upload-controls">
+                        <label for="{{ form.profile_image.id_for_label }}" class="btn btn-outline">
+                            <i class="fas fa-upload"></i> Upload Photo
+                        </label>
+                        {{ form.profile_image }}
+                        <p class="help-text">JPG, PNG or GIF. Max 5MB.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Basic Information -->
+            <div class="form-section">
+                <h2>Basic Information</h2>
+
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="{{ form.first_name.id_for_label }}">First Name</label>
+                        {{ form.first_name }}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.last_name.id_for_label }}">Last Name</label>
+                        {{ form.last_name }}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.email.id_for_label }}">Email</label>
+                    {{ form.email }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.user_type.id_for_label }}">I am a</label>
+                    {{ form.user_type }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.title.id_for_label }}">Title</label>
+                    {{ form.title }}
+                    <small class="help-text">e.g., Full Stack Developer, Product Designer</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.location.id_for_label }}">Location</label>
+                    {{ form.location }}
+                    <small class="help-text">City, Country</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.bio.id_for_label }}">Bio</label>
+                    {{ form.bio }}
+                    <small class="help-text">Tell us about yourself</small>
+                </div>
+            </div>
+
+            <!-- Skills & Interests -->
+            <div class="form-section">
+                <h2>Skills & Interests</h2>
+
+                <div class="form-group">
+                    <label>Skills</label>
+                    <div class="checkbox-grid">
+                        {% for skill in form.skills %}
+                            <label class="checkbox-item">
+                                {{ skill.tag }}
+                                <span>{{ skill.choice_label }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Interests</label>
+                    <div class="checkbox-grid">
+                        {% for interest in form.interests %}
+                            <label class="checkbox-item">
+                                {{ interest.tag }}
+                                <span>{{ interest.choice_label }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Social Links -->
+            <div class="form-section">
+                <h2>Social Links</h2>
+
+                <div class="form-group">
+                    <label for="{{ form.website.id_for_label }}">
+                        <i class="fas fa-globe"></i> Website
+                    </label>
+                    {{ form.website }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.github.id_for_label }}">
+                        <i class="fab fa-github"></i> GitHub
+                    </label>
+                    {{ form.github }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.linkedin.id_for_label }}">
+                        <i class="fab fa-linkedin"></i> LinkedIn
+                    </label>
+                    {{ form.linkedin }}
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+                <a href="{% url 'profile' user.username %}" class="btn btn-outline btn-lg">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.edit-profile-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.edit-profile-wrapper {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+}
+
+.edit-header {
+    padding: 2rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.edit-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.edit-header p {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.edit-profile-form {
+    padding: 2rem;
+}
+
+.form-section {
+    margin-bottom: 3rem;
+}
+
+.form-section:last-of-type {
+    margin-bottom: 2rem;
+}
+
+.form-section h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.profile-image-upload {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+.current-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid var(--border-color);
+}
+
+.current-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder-edit {
+    width: 100%;
+    height: 100%;
+    background: var(--accent-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    font-weight: 700;
+    color: white;
+}
+
+.upload-controls {
+    flex: 1;
+}
+
+.edit-profile-form input[type="file"] {
+    display: none;
+}
+
+.help-text {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.form-group label i {
+    margin-right: 0.5rem;
+    color: var(--text-muted);
+}
+
+.edit-profile-form input[type="text"],
+.edit-profile-form input[type="email"],
+.edit-profile-form input[type="url"],
+.edit-profile-form select,
+.edit-profile-form textarea {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.edit-profile-form textarea {
+    min-height: 120px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.edit-profile-form input:focus,
+.edit-profile-form select:focus,
+.edit-profile-form textarea:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    background: var(--bg-card);
+}
+
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.checkbox-item:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-hover);
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent-primary);
+}
+
+.checkbox-item span {
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) {
+    .edit-profile-container {
+        padding: 1rem;
+    }
+
+    .edit-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .profile-image-upload {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .form-row-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .checkbox-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+    }
+}
+</style>
+
+<script>
+// Image preview
+document.getElementById('{{ form.profile_image.id_for_label }}').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('avatarPreview');
+            preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+        };
+        reader.readAsDataURL(file);
+    }
+});
+</script>
+{% endblock %}

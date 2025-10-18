@@ -1,0 +1,498 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit {{ project.title }} - Workstation Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Reuse create project styles with edit-specific additions */
+.edit-project-header {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.edit-title-section h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.edit-title-section p {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.edit-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-danger {
+    background: #ef4444;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+.edit-form-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 2rem 2rem;
+}
+
+.edit-form-wrapper {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 3rem;
+}
+
+.form-section {
+    margin-bottom: 2rem;
+}
+
+.form-section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.form-section-title i {
+    color: var(--accent-primary);
+}
+
+.current-image {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.current-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-actions {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.image-action-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.image-action-btn:hover {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.status-indicator.open {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--accent-primary);
+}
+
+.status-indicator.closed {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.status-indicator i {
+    font-size: 8px;
+}
+
+.project-stats-edit {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card-edit {
+    background: var(--bg-tertiary);
+    padding: 1.25rem;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.stat-value-edit {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent-primary);
+    margin-bottom: 0.25rem;
+}
+
+.stat-label-edit {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.delete-section {
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-top: 3rem;
+}
+
+.delete-section h3 {
+    color: #ef4444;
+    margin-bottom: 0.75rem;
+}
+
+.delete-section p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+/* Form styling */
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.form-input, .form-textarea, .form-select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.form-textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.required {
+    color: #ef4444;
+}
+
+.alert-error {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    color: #ef4444;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .edit-project-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .edit-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .edit-actions .btn {
+        width: 100%;
+    }
+
+    .edit-form-container {
+        padding: 0 1rem 1rem;
+    }
+
+    .edit-form-wrapper {
+        padding: 1.5rem;
+    }
+
+    .project-stats-edit {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .form-section-title {
+        font-size: 16px;
+    }
+
+    .current-image {
+        height: 180px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .project-stats-edit {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="edit-project-header">
+    <div class="edit-title-section">
+        <h1>Edit Project</h1>
+        <p>Update your project information and settings</p>
+    </div>
+    <div class="edit-actions">
+        <a href="{% url 'project_detail' project.slug %}" class="btn btn-outline">
+            <i class="fas fa-times"></i> Cancel
+        </a>
+        <button type="button" class="btn btn-primary" onclick="document.getElementById('editForm').requestSubmit()">
+            <i class="fas fa-save"></i> Save Changes
+        </button>
+    </div>
+</div>
+
+<div class="edit-form-container">
+    <!-- Project Stats -->
+    <div class="project-stats-edit">
+        <div class="stat-card-edit">
+            <div class="stat-value-edit">{{ project.views_count }}</div>
+            <div class="stat-label-edit">Views</div>
+        </div>
+        <div class="stat-card-edit">
+            <div class="stat-value-edit">{{ project.members.count }}</div>
+            <div class="stat-label-edit">Members</div>
+        </div>
+        <div class="stat-card-edit">
+            <div class="stat-value-edit">{{ project.supporters.count }}</div>
+            <div class="stat-label-edit">Supporters</div>
+        </div>
+        <div class="stat-card-edit">
+            <div class="stat-value-edit">
+                <span class="status-indicator {{ project.status }}">
+                    <i class="fas fa-circle"></i>
+                    {{ project.get_status_display }}
+                </span>
+            </div>
+            <div class="stat-label-edit">Status</div>
+        </div>
+    </div>
+
+    <div class="edit-form-wrapper">
+        <form method="post" enctype="multipart/form-data" id="editForm">
+            {% csrf_token %}
+
+            {% if form.errors %}
+            <div class="alert alert-error" style="margin-bottom: 2rem; padding: 1rem; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; color: #ef4444;">
+                <strong>Please correct the following errors:</strong>
+                <ul style="margin: 0.5rem 0 0 1.5rem;">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <li>{{ field }}: {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- Basic Information -->
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <i class="fas fa-info-circle"></i>
+                    Basic Information
+                </h3>
+
+                <div class="form-section">
+                    <label class="form-label">Project Title <span class="required">*</span></label>
+                    {{ form.title }}
+                </div>
+
+                <div class="form-section">
+                    <label class="form-label">Short Description <span class="required">*</span></label>
+                    {{ form.short_description }}
+                </div>
+
+                <div class="form-row">
+                    <div class="form-section">
+                        <label class="form-label">Project Type</label>
+                        {{ form.project_type }}
+                    </div>
+                    <div class="form-section">
+                        <label class="form-label">Current Stage</label>
+                        {{ form.stage }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <i class="fas fa-file-alt"></i>
+                    Detailed Description
+                </h3>
+                <div class="form-section">
+                    <label class="form-label">Full Description <span class="required">*</span></label>
+                    {{ form.description }}
+                </div>
+            </div>
+
+            <!-- Cover Image -->
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <i class="fas fa-image"></i>
+                    Cover Image
+                </h3>
+
+                {% if project.cover_image %}
+                <div class="current-image">
+                    <img src="{{ project.cover_image.url }}" alt="{{ project.title }} cover image">
+                    <div class="image-actions">
+                        <button type="button" class="image-action-btn" onclick="document.getElementById('cover_image').click()">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" class="image-action-btn" onclick="removeCoverImage()">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="form-section">
+                    <label class="form-label">{% if project.cover_image %}Change Cover Image{% else %}Upload Cover Image{% endif %}</label>
+                    {{ form.cover_image }}
+                </div>
+            </div>
+
+            <!-- Collaboration & Status -->
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <i class="fas fa-users"></i>
+                    Collaboration & Status
+                </h3>
+
+                <div class="form-row">
+                    <div class="form-section">
+                        <label class="form-label">Collaboration Needed</label>
+                        {{ form.collaboration_needed }}
+                    </div>
+                    <div class="form-section">
+                        <label class="form-label">Project Status</label>
+                        {{ form.status }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tags -->
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <i class="fas fa-tags"></i>
+                    Tags
+                </h3>
+                <div class="form-section">
+                    <label class="form-label">Project Tags</label>
+                    {{ form.tags }}
+                    <small style="color: var(--text-secondary); margin-top: 0.5rem; display: block;">
+                        Select multiple tags that describe your project
+                    </small>
+                </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="delete-section">
+                <h3><i class="fas fa-exclamation-triangle"></i> Danger Zone</h3>
+                <p>Once you delete a project, there is no going back. Please be certain.</p>
+                <a href="{% url 'project_delete' project.slug %}" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Delete Project
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function removeCoverImage() {
+    if (confirm('Are you sure you want to remove the cover image?')) {
+        // Create a hidden input to indicate image removal
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'cover_image-clear';
+        hiddenInput.value = 'true';
+        document.getElementById('editForm').appendChild(hiddenInput);
+
+        // Clear the file input
+        document.getElementById('cover_image').value = '';
+
+        // Hide the current image display
+        document.querySelector('.current-image').style.display = 'none';
+    }
+}
+
+// Add form styling to Django form fields
+document.addEventListener('DOMContentLoaded', function() {
+    // Style all form inputs
+    const inputs = document.querySelectorAll('input[type="text"], input[type="file"], textarea, select');
+    inputs.forEach(input => {
+        input.classList.add('form-input');
+    });
+
+    // Specific styling for textareas
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        textarea.classList.add('form-textarea');
+    });
+
+    // Specific styling for selects
+    const selects = document.querySelectorAll('select');
+    selects.forEach(select => {
+        select.classList.add('form-select');
+    });
+});
+</script>
+{% endblock %}
