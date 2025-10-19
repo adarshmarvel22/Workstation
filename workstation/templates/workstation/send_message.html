@@ -1,0 +1,510 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Send Message to {{ recipient.username }} - Workstation Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+.send-message-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.message-header-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.recipient-info {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.recipient-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid var(--border-color);
+}
+
+.recipient-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.recipient-avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--accent-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 700;
+    color: white;
+}
+
+.recipient-details h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 0.375rem;
+}
+
+.recipient-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.recipient-badge {
+    background: var(--bg-tertiary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+.message-form-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+.form-header {
+    margin-bottom: 2rem;
+}
+
+.form-header h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.form-header p {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.message-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.message-form label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+}
+
+.message-form input,
+.message-form textarea {
+    width: 100%;
+    padding: 1rem;
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: 15px;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.message-form input:focus,
+.message-form textarea:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    background: var(--bg-card);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.message-form textarea {
+    min-height: 200px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+.char-counter {
+    text-align: right;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+}
+
+.message-templates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.template-chip {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.template-chip:hover {
+    background: var(--bg-hover);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.template-chip i {
+    font-size: 11px;
+}
+
+.message-actions {
+    display: flex;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.message-actions .btn {
+    flex: 1;
+}
+
+.quick-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.quick-action-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    padding: 0.625rem 1rem;
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.quick-action-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .send-message-container {
+        padding: 1rem;
+    }
+
+    .message-header-card,
+    .message-form-card {
+        padding: 1.5rem;
+    }
+
+    .recipient-info {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .recipient-avatar {
+        width: 64px;
+        height: 64px;
+    }
+
+    .recipient-details h2 {
+        font-size: 20px;
+    }
+
+    .recipient-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .message-actions {
+        flex-direction: column-reverse;
+    }
+
+    .message-templates {
+        justify-content: center;
+    }
+
+    .quick-actions {
+        flex-wrap: wrap;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="send-message-container">
+    <!-- Recipient Info -->
+    <div class="message-header-card">
+        <div class="recipient-info">
+            <div class="recipient-avatar">
+                {% if recipient.profile_image %}
+                    <img src="{{ recipient.profile_image.url }}" alt="{{ recipient.username }}">
+                {% else %}
+                    <div class="recipient-avatar-placeholder">{{ recipient.username|first|upper }}</div>
+                {% endif %}
+            </div>
+            <div class="recipient-details">
+                <h2>{{ recipient.get_full_name|default:recipient.username }}</h2>
+                <div class="recipient-meta">
+                    <span class="recipient-badge">{{ recipient.get_user_type_display }}</span>
+                    {% if recipient.title %}
+                    <span>{{ recipient.title }}</span>
+                    {% endif %}
+                    {% if recipient.location %}
+                    <span><i class="fas fa-map-marker-alt"></i> {{ recipient.location }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Form -->
+    <div class="message-form-card">
+        <div class="form-header">
+            <h3>Send a Message</h3>
+            <p>Start a conversation with {{ recipient.username }}</p>
+        </div>
+
+        <!-- Quick Templates -->
+        <div class="message-templates">
+            <button type="button" class="template-chip" onclick="useTemplate('collaboration')">
+                <i class="fas fa-handshake"></i> Collaboration
+            </button>
+            <button type="button" class="template-chip" onclick="useTemplate('question')">
+                <i class="fas fa-question-circle"></i> Ask a Question
+            </button>
+            <button type="button" class="template-chip" onclick="useTemplate('feedback')">
+                <i class="fas fa-comment"></i> Give Feedback
+            </button>
+            <button type="button" class="template-chip" onclick="useTemplate('introduction')">
+                <i class="fas fa-user"></i> Introduction
+            </button>
+        </div>
+
+        <form method="post" class="message-form" id="messageForm">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="subject">Subject (Optional)</label>
+                <input
+                    type="text"
+                    id="subject"
+                    name="subject"
+                    placeholder="What's this message about?"
+                    maxlength="200"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="content">Message</label>
+                <textarea
+                    id="content"
+                    name="content"
+                    placeholder="Write your message here..."
+                    required
+                    maxlength="5000"
+                ></textarea>
+                <div class="char-counter">
+                    <span id="charCount">0</span> / 5000 characters
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <button type="button" class="quick-action-btn" onclick="addMention()">
+                    <i class="fas fa-at"></i> Mention
+                </button>
+                <button type="button" class="quick-action-btn" onclick="addEmoji()">
+                    <i class="far fa-smile"></i> Emoji
+                </button>
+                <button type="button" class="quick-action-btn" onclick="togglePreview()">
+                    <i class="fas fa-eye"></i> Preview
+                </button>
+            </div>
+
+            <!-- Message Actions -->
+            <div class="message-actions">
+                <a href="{% url 'profile' recipient.username %}" class="btn btn-outline">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary" id="sendBtn">
+                    <i class="fas fa-paper-plane"></i> Send Message
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div id="previewModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Message Preview</h2>
+            <button class="modal-close" onclick="togglePreview()">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 2rem;">
+            <div style="background: var(--bg-tertiary); padding: 1.5rem; border-radius: 10px;">
+                <h4 id="previewSubject" style="margin-bottom: 1rem; font-size: 18px;"></h4>
+                <p id="previewContent" style="line-height: 1.6; white-space: pre-wrap;"></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const contentTextarea = document.getElementById('content');
+const charCount = document.getElementById('charCount');
+const subjectInput = document.getElementById('subject');
+
+// Character counter
+contentTextarea.addEventListener('input', function() {
+    charCount.textContent = this.value.length;
+
+    // Auto-resize
+    this.style.height = 'auto';
+    this.style.height = (this.scrollHeight) + 'px';
+});
+
+// Message templates
+const templates = {
+    collaboration: {
+        subject: 'Collaboration Opportunity',
+        content: `Hi {{ recipient.username }},
+
+I came across your profile and was impressed by your work. I'm working on a project that I think could benefit from your expertise.
+
+Would you be interested in collaborating? I'd love to discuss this further.
+
+Best regards,
+{{ user.username }}`
+    },
+    question: {
+        subject: 'Quick Question',
+        content: `Hi {{ recipient.username }},
+
+I have a question about [topic]. I noticed your experience in this area and thought you might be able to help.
+
+[Your question here]
+
+Thanks in advance!
+{{ user.username }}`
+    },
+    feedback: {
+        subject: 'Feedback on Your Project',
+        content: `Hi {{ recipient.username }},
+
+I recently checked out your project and wanted to share some thoughts.
+
+[Your feedback here]
+
+Great work overall! Keep it up.
+
+Best,
+{{ user.username }}`
+    },
+    introduction: {
+        subject: 'Introduction',
+        content: `Hi {{ recipient.username }},
+
+I'm {{ user.username }}, [your title/role]. I'm interested in connecting with people in [field/industry].
+
+[Tell them why you're reaching out]
+
+Looking forward to connecting!
+{{ user.username }}`
+    }
+};
+
+function useTemplate(type) {
+    const template = templates[type];
+    if (template) {
+        subjectInput.value = template.subject;
+        contentTextarea.value = template.content;
+        contentTextarea.dispatchEvent(new Event('input'));
+        contentTextarea.focus();
+        showToast('Template applied', 'success');
+    }
+}
+
+function addMention() {
+    const cursorPos = contentTextarea.selectionStart;
+    const textBefore = contentTextarea.value.substring(0, cursorPos);
+    const textAfter = contentTextarea.value.substring(cursorPos);
+    contentTextarea.value = textBefore + '@{{ recipient.username }} ' + textAfter;
+    contentTextarea.focus();
+    contentTextarea.selectionStart = contentTextarea.selectionEnd = cursorPos + '@{{ recipient.username }} '.length;
+    contentTextarea.dispatchEvent(new Event('input'));
+}
+
+function addEmoji() {
+    // Simple emoji picker - you can expand this
+    const emojis = ['😊', '👍', '🎉', '💡', '🚀', '✨', '👋', '💪'];
+    const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+
+    const cursorPos = contentTextarea.selectionStart;
+    const textBefore = contentTextarea.value.substring(0, cursorPos);
+    const textAfter = contentTextarea.value.substring(cursorPos);
+    contentTextarea.value = textBefore + emoji + textAfter;
+    contentTextarea.focus();
+    contentTextarea.selectionStart = contentTextarea.selectionEnd = cursorPos + emoji.length;
+    contentTextarea.dispatchEvent(new Event('input'));
+}
+
+function togglePreview() {
+    const modal = document.getElementById('previewModal');
+    const isVisible = modal.classList.contains('show');
+
+    if (!isVisible) {
+        document.getElementById('previewSubject').textContent = subjectInput.value || 'No subject';
+        document.getElementById('previewContent').textContent = contentTextarea.value || 'No content';
+        modal.classList.add('show');
+    } else {
+        modal.classList.remove('show');
+    }
+}
+
+// Form submission
+document.getElementById('messageForm').addEventListener('submit', function(e) {
+    if (contentTextarea.value.trim().length === 0) {
+        e.preventDefault();
+        showToast('Please write a message', 'error');
+        contentTextarea.focus();
+        return;
+    }
+
+    const sendBtn = document.getElementById('sendBtn');
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+});
+
+// Keyboard shortcut (Ctrl+Enter to send)
+contentTextarea.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        document.getElementById('messageForm').requestSubmit();
+    }
+});
+</script>
+{% endblock %}

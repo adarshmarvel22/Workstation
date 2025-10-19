@@ -8,6 +8,8 @@ from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 from .models import *
 from .forms import *
+from django.utils import timezone
+from .forms import *
 
 
 def home(request):
@@ -435,3 +437,329 @@ def user_logout(request):
     logout(request)
     messages.success(request, 'You have been logged out.')
     return redirect('home')
+
+
+@login_required
+def messages_inbox(request):
+    """Messages inbox - list of all conversations"""
+    # Get all conversations for the current user
+    conversations = Conversation.objects.filter(
+        participants=request.user
+    ).select_related('last_message').order_by('-updated_at')
+
+    # Count unread messages
+    unread_count = Message.objects.filter(
+        recipient=request.user,
+        is_read=False
+    ).count()
+
+    context = {
+        'conversations': conversations,
+        'unread_count': unread_count,
+    }
+    return render(request, 'workstation/messages.html', context)
+
+
+@login_required
+def conversation_detail(request, conversation_id):
+    """View a specific conversation and send messages"""
+    conversation = get_object_or_404(
+        Conversation,
+        id=conversation_id,
+        participants=request.user
+    )
+
+    # Get all messages in this conversation
+    other_user = conversation.participants.exclude(id=request.user.id).first()
+
+    messages_list = Message.objects.filter(
+        Q(sender=request.user, recipient=other_user) |
+        Q(sender=other_user, recipient=request.user)
+    ).order_by('created_at')
+
+    # Mark messages as read
+    Message.objects.filter(
+        recipient=request.user,
+        sender=other_user,
+        is_read=False
+    ).update(is_read=True, read_at=timezone.now())
+
+    # Handle new message submission
+    if request.method == 'POST':
+        content = request.POST.get('content', '').strip()
+
+        if content:
+            message = Message.objects.create(
+                sender=request.user,
+                recipient=other_user,
+                content=content
+            )
+
+            # Update conversation
+            conversation.last_message = message
+            conversation.updated_at = timezone.now()
+            conversation.save()
+
+            # Create notification for recipient
+            Notification.objects.create(
+                user=other_user,
+                notification_type='message',
+                title='New message',
+                content=f'{request.user.username} sent you a message',
+                link=f'/conversations/{conversation.id}/'
+            )
+
+            messages.success(request, 'Message sent!')
+            return redirect('conversation_detail', conversation_id=conversation.id)
+        else:
+            messages.error(request, 'Message cannot be empty')
+
+    # Get all conversations for sidebar
+    all_conversations = Conversation.objects.filter(
+        participants=request.user
+    ).select_related('last_message').order_by('-updated_at')
+
+    unread_count = Message.objects.filter(
+        recipient=request.user,
+        is_read=False
+    ).count()
+
+    context = {
+        'conversation': conversation,
+        'conversations': all_conversations,
+        'messages': messages_list,
+        'other_user': other_user,
+        'unread_count': unread_count,
+    }
+    return render(request, 'workstation/messages.html', context)
+
+
+@login_required
+def send_message(request, username):
+    """Send a new message to a user"""
+    recipient = get_object_or_404(User, username=username)
+
+    if recipient == request.user:
+        messages.error(request, "You cannot send a message to yourself")
+        return redirect('profile', username=username)
+
+    if request.method == 'POST':
+        subject = request.POST.get('subject', '').strip()
+        content = request.POST.get('content', '').strip()
+
+        if not content:
+            messages.error(request, 'Message content is required')
+            return redirect('send_message', username=username)
+
+        # Create the message
+        message = Message.objects.create(
+            sender=request.user,
+            recipient=recipient,
+            subject=subject,
+            content=content
+        )
+
+        # Get or create conversation
+        conversation = Conversation.objects.filter(
+            participants=request.user
+        ).filter(
+            participants=recipient
+        ).first()
+
+        if not conversation:
+            conversation = Conversation.objects.create()
+            conversation.participants.add(request.user, recipient)
+
+        conversation.last_message = message
+        conversation.updated_at = timezone.now()
+        conversation.save()
+
+        # Create notification
+        Notification.objects.create(
+            user=recipient,
+            notification_type='message',
+            title='New message',
+            content=f'{request.user.username} sent you a message',
+            link=f'/conversations/{conversation.id}/'
+        )
+
+        messages.success(request, f'Message sent to {recipient.username}!')
+        return redirect('conversation_detail', conversation_id=conversation.id)
+
+    context = {
+        'recipient': recipient,
+    }
+    return render(request, 'workstation/send_message.html', context)
+
+
+@login_required
+def notifications(request):
+    """View all notifications"""
+    # Get all notifications for the current user
+    notifications = request.user.notifications.all().order_by('-created_at')
+
+    # Mark notifications as read when viewed
+    notifications.filter(is_read=False).update(is_read=True)
+
+    context = {
+        'notifications': notifications,
+    }
+    return render(request, 'workstation/notifications.html', context)
+
+
+@login_required
+def create_thought(request):
+    """Create a new thought/post"""
+    if request.method == 'POST':
+        form = ThoughtForm(request.POST)
+        if form.is_valid():
+            thought = form.save(commit=False)
+            thought.user = request.user
+            thought.save()
+            form.save_m2m()  # Save the many-to-many tags
+
+            messages.success(request, 'Thought posted successfully!')
+            return redirect('profile', username=request.user.username)
+        else:
+            messages.error(request, 'Please correct the errors below')
+    else:
+        form = ThoughtForm()
+
+    context = {
+        'form': form,
+    }
+    return render(request, 'workstation/create_thought.html', context)
+
+
+@login_required
+def dashboard(request):
+    """User dashboard with overview"""
+    # Get user's projects
+    my_projects = request.user.created_projects.all().order_by('-created_at')[:5]
+
+    # Get projects user has joined
+    joined_projects = request.user.joined_projects.exclude(
+        id__in=my_projects.values_list('id', flat=True)
+    ).order_by('-projectmembership__joined_at')[:5]
+
+    # Get recent messages
+    recent_messages = Message.objects.filter(
+        recipient=request.user
+    ).select_related('sender').order_by('-created_at')[:5]
+
+    # Get unread notifications
+    unread_notifications = request.user.notifications.filter(
+        is_read=False
+    ).order_by('-created_at')[:10]
+
+    # Get stats
+    stats = {
+        'projects_created': request.user.created_projects.count(),
+        'projects_joined': request.user.joined_projects.count(),
+        'projects_supported': request.user.supported_projects.count(),
+        'unread_messages': Message.objects.filter(
+            recipient=request.user,
+            is_read=False
+        ).count(),
+        'unread_notifications': unread_notifications.count(),
+    }
+
+    # Get recent activity (join requests, comments, etc.)
+    recent_join_requests = JoinRequest.objects.filter(
+        project__creator=request.user,
+        status='pending'
+    ).select_related('user', 'project').order_by('-created_at')[:5]
+
+    context = {
+        'my_projects': my_projects,
+        'joined_projects': joined_projects,
+        'recent_messages': recent_messages,
+        'notifications': unread_notifications,
+        'stats': stats,
+        'join_requests': recent_join_requests,
+    }
+    return render(request, 'workstation/dashboard.html', context)
+
+
+# API endpoint for marking notifications as read
+@login_required
+def mark_notification_read(request, notification_id):
+    """Mark a single notification as read"""
+    if request.method == 'POST':
+        notification = get_object_or_404(
+            Notification,
+            id=notification_id,
+            user=request.user
+        )
+        notification.is_read = True
+        notification.save()
+
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False}, status=400)
+
+
+# API endpoint for marking all notifications as read
+@login_required
+def mark_all_notifications_read(request):
+    """Mark all notifications as read"""
+    if request.method == 'POST':
+        count = request.user.notifications.filter(is_read=False).update(is_read=True)
+        return JsonResponse({'success': True, 'count': count})
+    return JsonResponse({'success': False}, status=400)
+
+
+# API endpoint for deleting a message
+@login_required
+def delete_message(request, message_id):
+    """Delete a message"""
+    if request.method == 'POST':
+        # message = get_object_or_404(
+        #     Message,
+        #     id=message_id,
+        #     Q(sender=request.user) | Q(recipient=request.user)
+        # )
+        # message.delete()
+        # messages.success(request, 'Message deleted')
+        pass
+        return redirect('messages')
+    return redirect('messages')
+
+
+# API endpoint for deleting a conversation
+@login_required
+def delete_conversation(request, conversation_id):
+    """Delete a conversation"""
+    if request.method == 'POST':
+        conversation = get_object_or_404(
+            Conversation,
+            id=conversation_id,
+            participants=request.user
+        )
+
+        # Delete all messages in this conversation
+        other_user = conversation.participants.exclude(id=request.user.id).first()
+        Message.objects.filter(
+            Q(sender=request.user, recipient=other_user) |
+            Q(sender=other_user, recipient=request.user)
+        ).delete()
+
+        conversation.delete()
+        messages.success(request, 'Conversation deleted')
+        return redirect('messages')
+    return redirect('messages')
+
+
+# Helper function to create a conversation between two users
+def get_or_create_conversation(user1, user2):
+    """Get existing conversation or create new one"""
+    conversation = Conversation.objects.filter(
+        participants=user1
+    ).filter(
+        participants=user2
+    ).first()
+
+    if not conversation:
+        conversation = Conversation.objects.create()
+        conversation.participants.add(user1, user2)
+
+    return conversation
