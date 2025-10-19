@@ -713,14 +713,12 @@ def mark_all_notifications_read(request):
 def delete_message(request, message_id):
     """Delete a message"""
     if request.method == 'POST':
-        # message = get_object_or_404(
-        #     Message,
-        #     id=message_id,
-        #     Q(sender=request.user) | Q(recipient=request.user)
-        # )
-        # message.delete()
-        # messages.success(request, 'Message deleted')
-        pass
+        message = get_object_or_404(
+            Message,
+            Q(id=message_id) & (Q(sender=request.user) | Q(recipient=request.user))
+        )
+        message.delete()
+        messages.success(request, 'Message deleted')
         return redirect('messages')
     return redirect('messages')
 
