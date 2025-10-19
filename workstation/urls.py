@@ -27,9 +27,13 @@ urlpatterns = [
     path('messages/', views.messages_inbox, name='messages'),
     path('messages/send/<str:username>/', views.send_message, name='send_message'),
     path('conversations/<int:conversation_id>/', views.conversation_detail, name='conversation_detail'),
+    path('messages/<int:message_id>/delete/', views.delete_message, name='delete_message'),
+    path('conversations/<int:conversation_id>/delete/', views.delete_conversation, name='delete_conversation'),
 
     # Notifications
     path('notifications/', views.notifications, name='notifications'),
+    path('notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
+    path('notifications/read-all/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
 
     # Thoughts
     path('thoughts/create/', views.create_thought, name='create_thought'),
