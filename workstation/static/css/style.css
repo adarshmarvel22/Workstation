@@ -914,9 +914,6 @@ body {
 .message-content p {
     font-size: 12px;
     color: var(--text-secondary);
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
     overflow: hidden;
 }
 
@@ -1160,4 +1157,26 @@ body {
     border: 1px solid #06b206 !important;
     border-radius: 10px !important;
     padding: 5px !important;
+}
+
+/* Apply to all inputs, textareas, and selects inside forms */
+form input,
+form textarea,
+form select {
+    border-radius: 10px;
+    width: 100%;
+    max-width: 100%;
+    border: 2px solid green;
+    padding: 12px;
+    font-size: 14px;
+    background-color: white;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+form input:focus,
+form textarea:focus,
+form select:focus {
+    border-color: darkgreen;
+    box-shadow: 0 0 0 3px rgba(0, 128, 0, 0.15);
 }
