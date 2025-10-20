@@ -37,4 +37,11 @@ urlpatterns = [
 
     # Thoughts
     path('thoughts/create/', views.create_thought, name='create_thought'),
+
+    # AI Workers URLs
+    path('ai-workers/', views.ai_workers_dashboard, name='ai_workers_dashboard'),
+    path('ai-workers/<int:worker_id>/', views.ai_conversation, name='ai_conversation'),
+    path('ai-workers/<int:worker_id>/<int:conversation_id>/', views.ai_conversation, name='ai_conversation_detail'),
+    path('ai-workers/send-message/', views.send_ai_message, name='send_ai_message'),
+    path('ai-workers/delete/<int:conversation_id>/', views.delete_conversation, name='delete_ai_conversation'),
 ]

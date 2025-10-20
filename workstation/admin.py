@@ -146,3 +146,40 @@ class ProjectMembershipAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.select_related('user', 'project')
+
+
+@admin.register(AIWorker)
+class AIWorkerAdmin(admin.ModelAdmin):
+    list_display = ['name', 'worker_type', 'is_active', 'created_at']
+    list_filter = ['worker_type', 'is_active']
+    search_fields = ['name', 'description']
+    list_editable = ['is_active']
+
+
+@admin.register(AIConversation)
+class AIConversationAdmin(admin.ModelAdmin):
+    list_display = ['user', 'worker', 'title', 'created_at', 'updated_at']
+    list_filter = ['worker', 'created_at']
+    search_fields = ['user__username', 'title']
+    date_hierarchy = 'created_at'
+
+
+@admin.register(AIMessage)
+class AIMessageAdmin(admin.ModelAdmin):
+    list_display = ['conversation', 'sender', 'created_at', 'content_preview']
+    list_filter = ['sender', 'created_at']
+    search_fields = ['content']
+    date_hierarchy = 'created_at'
+
+    def content_preview(self, obj):
+        return obj.content[:50] + '...' if len(obj.content) > 50 else obj.content
+
+    content_preview.short_description = 'Content'
+
+
+@admin.register(AITool)
+class AIToolAdmin(admin.ModelAdmin):
+    list_display = ['name', 'category', 'order', 'is_active']
+    list_filter = ['category', 'is_active']
+    search_fields = ['name', 'description']
+    list_editable = ['order', 'is_active']

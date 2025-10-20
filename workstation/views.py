@@ -7,9 +7,9 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 from .models import *
-from .forms import *
 from django.utils import timezone
 from .forms import *
+import json
 
 
 def home(request):
@@ -760,3 +760,136 @@ def get_or_create_conversation(user1, user2):
         conversation.participants.add(user1, user2)
 
     return conversation
+
+
+@login_required
+def ai_workers_dashboard(request):
+    """Main AI Workers dashboard"""
+    workers = AIWorker.objects.filter(is_active=True)
+    tools = AITool.objects.filter(is_active=True)
+
+    # Get or create default conversation
+    conversations = AIConversation.objects.filter(user=request.user)
+
+    context = {
+        'workers': workers,
+        'tools': tools,
+        'conversations': conversations,
+    }
+    return render(request, 'workstation/ai_workers.html', context)
+
+
+@login_required
+def ai_conversation(request, worker_id, conversation_id=None):
+    """View or create conversation with specific AI worker"""
+    worker = get_object_or_404(AIWorker, id=worker_id)
+
+    if conversation_id:
+        conversation = get_object_or_404(
+            AIConversation,
+            id=conversation_id,
+            user=request.user,
+            worker=worker
+        )
+    else:
+        # Create new conversation
+        conversation = AIConversation.objects.create(
+            user=request.user,
+            worker=worker,
+            title=f"New {worker.name} conversation"
+        )
+
+    messages = conversation.messages.all()
+    workers = AIWorker.objects.filter(is_active=True)
+    tools = AITool.objects.filter(is_active=True)
+    conversations = AIConversation.objects.filter(user=request.user)
+
+    context = {
+        'worker': worker,
+        'conversation': conversation,
+        'messages': messages,
+        'workers': workers,
+        'tools': tools,
+        'conversations': conversations,
+    }
+    return render(request, 'workstation/ai_workers.html', context)
+
+
+@login_required
+@require_POST
+def send_ai_message(request):
+    """Send message to AI worker"""
+    try:
+        data = json.loads(request.body)
+        conversation_id = data.get('conversation_id')
+        message_content = data.get('message')
+
+        conversation = get_object_or_404(
+            AIConversation,
+            id=conversation_id,
+            user=request.user
+        )
+
+        # Create user message
+        user_message = AIMessage.objects.create(
+            conversation=conversation,
+            sender='user',
+            content=message_content
+        )
+
+        # Simulate AI response (replace with actual AI integration)
+        ai_response = generate_ai_response(conversation.worker, message_content)
+
+        ai_message = AIMessage.objects.create(
+            conversation=conversation,
+            sender='ai',
+            content=ai_response
+        )
+
+        # Update conversation title if it's the first message
+        if conversation.messages.count() == 2:
+            conversation.title = message_content[:50]
+            conversation.save()
+
+        return JsonResponse({
+            'success': True,
+            'user_message': {
+                'id': user_message.id,
+                'content': user_message.content,
+                'created_at': user_message.created_at.strftime('%H:%M')
+            },
+            'ai_message': {
+                'id': ai_message.id,
+                'content': ai_message.content,
+                'created_at': ai_message.created_at.strftime('%H:%M')
+            }
+        })
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+
+def generate_ai_response(worker, message):
+    """Generate AI response based on worker type (placeholder)"""
+    responses = {
+        'coder': f"I'll help you with that code. Based on your request: '{message[:50]}...', here's my suggestion...",
+        'researcher': f"Let me research that for you. Regarding '{message[:50]}...', here's what I found...",
+        'marketer': f"Great marketing question! For '{message[:50]}...', I recommend...",
+        'designer': f"I can help design that! Based on '{message[:50]}...', here's my creative approach...",
+        'writer': f"I'll craft that content for you. About '{message[:50]}...', here's my draft...",
+        'analyst': f"Let me analyze that data. Regarding '{message[:50]}...', here are the insights...",
+    }
+    return responses.get(worker.worker_type, "I'm here to help! Let me process your request...")
+
+
+@login_required
+def delete_conversation(request, conversation_id):
+    """Delete AI conversation"""
+    conversation = get_object_or_404(
+        AIConversation,
+        id=conversation_id,
+        user=request.user
+    )
+    worker_id = conversation.worker.id
+    conversation.delete()
+    return redirect('ai_conversation', worker_id=worker_id)

@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.text import slugify
 from django.core.validators import MinValueValidator, MaxValueValidator
-
+from django.contrib.auth.models import User
 
 class User(AbstractUser):
     """Extended user model for Workstation Hub"""
@@ -276,3 +276,79 @@ class JoinRequest(models.Model):
         db_table = 'join_requests'
         unique_together = ('user', 'project')
         ordering = ['-created_at']
+
+
+class AIWorker(models.Model):
+    """AI Worker types like AI Coder, AI Researcher, etc."""
+    WORKER_TYPES = [
+        ('coder', 'AI Coder'),
+        ('researcher', 'AI Researcher'),
+        ('marketer', 'AI Marketer'),
+        ('designer', 'AI Designer'),
+        ('writer', 'AI Writer'),
+        ('analyst', 'AI Analyst'),
+    ]
+
+    name = models.CharField(max_length=100)
+    worker_type = models.CharField(max_length=20, choices=WORKER_TYPES)
+    description = models.TextField()
+    icon = models.CharField(max_length=50, default='🤖')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class AIConversation(models.Model):
+    """Conversation between user and AI Worker"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ai_conversations')
+    worker = models.ForeignKey(AIWorker, on_delete=models.CASCADE, related_name='conversations')
+    title = models.CharField(max_length=200, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.worker.name} - {self.created_at.strftime('%Y-%m-%d')}"
+
+    def get_first_message_preview(self):
+        first_message = self.messages.first()
+        if first_message:
+            return first_message.content[:50] + '...' if len(first_message.content) > 50 else first_message.content
+        return "New conversation"
+
+
+class AIMessage(models.Model):
+    """Messages in AI conversation"""
+    conversation = models.ForeignKey(AIConversation, on_delete=models.CASCADE, related_name='messages')
+    sender = models.CharField(max_length=10, choices=[('user', 'User'), ('ai', 'AI')])
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"{self.sender} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+
+
+class AITool(models.Model):
+    """Tools available in AI Workers dashboard"""
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    icon = models.CharField(max_length=50, default='🔧')
+    category = models.CharField(max_length=50)
+    is_active = models.BooleanField(default=True)
+    order = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['order', 'name']
+
+    def __str__(self):
+        return self.name
