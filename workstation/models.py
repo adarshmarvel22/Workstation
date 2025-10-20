@@ -189,6 +189,10 @@ class Message(models.Model):
 
 class Conversation(models.Model):
     """Conversation threads between users"""
+    def get_other_user(self, current_user):
+        """Get the other participant in the conversation"""
+        return self.participants.exclude(id=current_user.id).first()
+
     participants = models.ManyToManyField(User, related_name='conversations')
     project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True, blank=True, related_name='conversations')
     last_message = models.ForeignKey(Message, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')

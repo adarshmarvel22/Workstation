@@ -813,6 +813,15 @@ img {
     }
 }
 
+@media (max-width: 768px) {
+    .navbar,
+    .messages-wrapper,
+    .profile-header-section {
+        padding-left: 0rem !important;
+        padding-right: 0rem !important;
+    }
+}
+
 /* ===== SAFE AREAS FOR NOTCHED DEVICES ===== */
 @supports (padding: max(0px)) {
     .navbar,

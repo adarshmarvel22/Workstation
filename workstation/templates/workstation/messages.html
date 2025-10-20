@@ -10,7 +10,7 @@
         <div class="conversations-panel">
             <div class="panel-header">
                 <h2>Messages</h2>
-                <button class="btn btn-sm btn-primary" onclick="showNewMessageModal()">
+                <button class="btn btn-sm btn-primary" onclick="location.href='{% url 'explore' %}'">
                     <i class="fas fa-pen"></i> New
                 </button>
             </div>
@@ -21,39 +21,44 @@
             </div>
 
             <div class="conversations-list">
-                {% for conversation in conversations %}
-                <a href="{% url 'conversation_detail' conversation.id %}" class="conversation-item {% if request.resolver_match.kwargs.conversation_id == conversation.id %}active{% endif %}">
+                {% for conv in conversations %}
+                <a href="{% url 'conversation_detail' conv.id %}"
+                   class="conversation-item {% if conversation and conversation.id == conv.id %}active{% endif %}">
                     <div class="conversation-avatar">
-                        {% with other_user=conversation.participants.exclude|first %}
-                            {% if other_user.profile_image %}
-                                <img src="{{ other_user.profile_image.url }}" alt="{{ other_user.username }}">
-                            {% else %}
-                                <div class="avatar-placeholder-conv">{{ other_user.username|first|upper }}</div>
-                            {% endif %}
-                        {% endwith %}
+                        {% if conv.last_message.recipient.profile_image %}
+                            <img src="{{ conv.last_message.recipient.profile_image.url }}" alt="{{ conv.last_message.recipient.username }}">
+                        {% else %}
+                            <div class="avatar-placeholder-conv">{{ conv.other_user.username|first|upper }}</div>
+                        {% endif %}
                     </div>
                     <div class="conversation-content">
                         <div class="conversation-header">
-                            <h4>{% with other_user=conversation.participants.exclude|first %}{{ other_user.get_full_name|default:other_user.username }}{% endwith %}</h4>
-                            <span class="conversation-time">{{ conversation.updated_at|timesince }}</span>
+                            <h4>{{ conv.last_message.recipient.get_full_name|default:conv.last_message.recipient.username }}</h4>
+                            <span class="conversation-time">
+                                {% if conv.last_message %}
+                                    {{ conv.last_message.created_at|timesince }} ago
+                                {% else %}
+                                    Just now
+                                {% endif %}
+                            </span>
                         </div>
                         <p class="conversation-preview">
-                            {% if conversation.last_message %}
-                                {{ conversation.last_message.content|truncatewords:10 }}
+                            {% if conv.last_message %}
+                                {{ conv.last_message.content|truncatewords:10 }}
                             {% else %}
                                 No messages yet
                             {% endif %}
                         </p>
                     </div>
-                    {% if conversation.last_message and not conversation.last_message.is_read and conversation.last_message.recipient == user %}
-                    <div class="unread-indicator"></div>
+                    {% if conv.unread_count > 0 %}
+                    <div class="unread-indicator" title="{{ conv.unread_count }} unread">{{ conv.unread_count }}</div>
                     {% endif %}
                 </a>
                 {% empty %}
                 <div class="empty-conversations">
                     <i class="fas fa-envelope"></i>
                     <p>No conversations yet</p>
-                    <button class="btn btn-primary btn-sm" onclick="showNewMessageModal()">
+                    <button class="btn btn-primary btn-sm" onclick="location.href='{% url 'explore' %}'">
                         Start a conversation
                     </button>
                 </div>
@@ -65,8 +70,10 @@
         <div class="messages-panel">
             {% if conversation %}
             <div class="messages-header">
+                <button class="back-btn-mobile icon-btn" onclick="location.href='{% url 'messages' %}'">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
                 <div class="header-user-info">
-                    {% with other_user=conversation.participants.exclude|first %}
                     <div class="header-avatar">
                         {% if other_user.profile_image %}
                             <img src="{{ other_user.profile_image.url }}" alt="{{ other_user.username }}">
@@ -78,11 +85,10 @@
                         <h3>{{ other_user.get_full_name|default:other_user.username }}</h3>
                         <p>{{ other_user.title|default:"Member" }}</p>
                     </div>
-                    {% endwith %}
                 </div>
                 <div class="header-actions">
-                    <button class="icon-btn">
-                        <i class="fas fa-ellipsis-v"></i>
+                    <button class="icon-btn" onclick="location.href='{% url 'profile' other_user.username %}'">
+                        <i class="fas fa-user"></i>
                     </button>
                 </div>
             </div>
@@ -98,17 +104,31 @@
                         {% endif %}
                     </div>
                     <div class="message-content">
+                        {% if message.subject %}
+                        <div class="message-subject">{{ message.subject }}</div>
+                        {% endif %}
                         <p>{{ message.content }}</p>
                         <span class="message-time">{{ message.created_at|date:"M d, H:i" }}</span>
                     </div>
+                </div>
+                {% empty %}
+                <div class="empty-messages">
+                    <i class="fas fa-comments"></i>
+                    <p>No messages yet. Start the conversation!</p>
                 </div>
                 {% endfor %}
             </div>
 
             <div class="messages-input">
-                <form method="post" action="{% url 'conversation_detail' conversation.id %}" id="messageForm">
+                <form method="post" id="messageForm">
                     {% csrf_token %}
-                    <textarea name="content" placeholder="Type your message..." rows="1" id="messageInput"></textarea>
+                    <textarea
+                        name="content"
+                        placeholder="Type your message..."
+                        rows="1"
+                        id="messageInput"
+                        required
+                    ></textarea>
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-paper-plane"></i>
                     </button>
@@ -119,8 +139,8 @@
                 <i class="fas fa-comments"></i>
                 <h3>Select a conversation</h3>
                 <p>Choose a conversation from the list or start a new one</p>
-                <button class="btn btn-primary" onclick="showNewMessageModal()">
-                    <i class="fas fa-pen"></i> New Message
+                <button class="btn btn-primary" onclick="location.href='{% url 'explore' %}'">
+                    <i class="fas fa-users"></i> Find People
                 </button>
             </div>
             {% endif %}
@@ -128,34 +148,8 @@
     </div>
 </div>
 
-<!-- New Message Modal -->
-<div id="newMessageModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>New Message</h2>
-            <button class="modal-close" onclick="closeNewMessageModal()">&times;</button>
-        </div>
-        <form method="post" action="#" class="modal-form">
-            {% csrf_token %}
-            <div class="form-group">
-                <label>To</label>
-                <input type="text" name="username" placeholder="Enter username" required>
-            </div>
-            <div class="form-group">
-                <label>Message</label>
-                <textarea name="content" rows="4" placeholder="Type your message..." required></textarea>
-            </div>
-            <div class="modal-actions">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-paper-plane"></i> Send
-                </button>
-                <button type="button" class="btn btn-outline" onclick="closeNewMessageModal()">Cancel</button>
-            </div>
-        </form>
-    </div>
-</div>
-
 <style>
+/* Messages Container */
 .messages-container {
     max-width: 1600px;
     margin: 0 auto;
@@ -174,6 +168,7 @@
     overflow: hidden;
 }
 
+/* Conversations Panel */
 .conversations-panel {
     border-right: 1px solid var(--border-color);
     display: flex;
@@ -307,12 +302,18 @@
 }
 
 .unread-indicator {
-    width: 10px;
-    height: 10px;
-    background: var(--accent-primary);
-    border-radius: 50%;
     position: absolute;
     right: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--accent-primary);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 10px;
+    min-width: 20px;
+    text-align: center;
 }
 
 .empty-conversations {
@@ -335,10 +336,13 @@
     margin-bottom: 1.5rem;
 }
 
+/* Messages Panel */
 .messages-panel {
     display: flex;
     flex-direction: column;
     background: var(--bg-primary);
+    height: 100%;
+    overflow: hidden;
 }
 
 .messages-header {
@@ -348,6 +352,11 @@
     justify-content: space-between;
     align-items: center;
     background: var(--bg-secondary);
+}
+
+.back-btn-mobile {
+    display: none;
+    margin-right: 1rem;
 }
 
 .header-user-info {
@@ -369,6 +378,18 @@
     object-fit: cover;
 }
 
+.avatar-placeholder-small {
+    width: 100%;
+    height: 100%;
+    background: var(--accent-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
+}
+
 .header-user-info h3 {
     font-size: 16px;
     font-weight: 600;
@@ -387,6 +408,7 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    scroll-behavior: smooth;
 }
 
 .message-bubble {
@@ -430,6 +452,12 @@
     flex: 1;
 }
 
+.message-subject {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 14px;
+}
+
 .message-content p {
     background: var(--bg-secondary);
     padding: 0.875rem 1.125rem;
@@ -437,6 +465,7 @@
     font-size: 14px;
     line-height: 1.6;
     margin-bottom: 0.375rem;
+    word-wrap: break-word;
 }
 
 .message-bubble.sent .message-content p {
@@ -448,6 +477,21 @@
     font-size: 11px;
     color: var(--text-muted);
     padding: 0 0.5rem;
+}
+
+.empty-messages {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+}
+
+.empty-messages i {
+    font-size: 64px;
+    margin-bottom: 1rem;
+    opacity: 0.3;
 }
 
 .messages-input {
@@ -472,6 +516,7 @@
     font-size: 14px;
     resize: none;
     max-height: 120px;
+    font-family: inherit;
 }
 
 .messages-input textarea:focus {
@@ -506,34 +551,33 @@
     margin-bottom: 2rem;
 }
 
+/* Mobile Responsive */
 @media (max-width: 968px) {
+    .messages-container {
+        padding: 0;
+        height: 100vh;
+    }
+
     .messages-wrapper {
         grid-template-columns: 1fr;
+        border-radius: 0;
     }
 
     .conversations-panel {
-        display: none;
+        display: {% if conversation %}none{% else %}flex{% endif %};
     }
 
-    .messages-wrapper.show-conversations .conversations-panel {
-        display: flex;
+    .messages-panel {
+        display: {% if conversation %}flex{% else %}none{% endif %};
     }
 
-    .messages-wrapper.show-conversations .messages-panel {
-        display: none;
+    .back-btn-mobile {
+        display: flex !important;
     }
 }
 </style>
 
 <script>
-function showNewMessageModal() {
-    document.getElementById('newMessageModal').classList.add('show');
-}
-
-function closeNewMessageModal() {
-    document.getElementById('newMessageModal').classList.remove('show');
-}
-
 // Auto-resize textarea
 const messageInput = document.getElementById('messageInput');
 if (messageInput) {
@@ -564,6 +608,15 @@ if (searchInput) {
                 conv.style.display = 'none';
             }
         });
+    });
+}
+
+// Auto-submit on Ctrl+Enter
+if (messageInput) {
+    messageInput.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            document.getElementById('messageForm').submit();
+        }
     });
 }
 </script>

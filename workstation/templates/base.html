@@ -36,9 +36,6 @@
                     <a href="{% url 'explore' %}" class="nav-link {% if request.resolver_match.url_name == 'explore' %}active{% endif %}">Explore</a>
                     <a href="{% url 'home' %}" class="nav-link">Start</a>
                     <a href="#" class="nav-link">Collaborate</a>
-                    <a href="#" class="nav-link">Join</a>
-                    <a href="#" class="nav-link">Support</a>
-                    <a href="#" class="nav-link">Propose</a>
                 </div>
             </div>
 
@@ -49,7 +46,7 @@
                 </div>
 
                 {% if user.is_authenticated %}
-                    <button class="icon-btn">
+                    <button class="icon-btn" onclick="location.href='/messages/'">
                         <i class="far fa-comment-dots"></i>
                     </button>
 

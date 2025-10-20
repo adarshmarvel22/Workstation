@@ -196,111 +196,110 @@ def edit_profile(request):
     return render(request, 'workstation/edit_profile.html', context)
 
 
-@login_required
-def messages_inbox(request):
-    """Messages inbox"""
-    conversations = Conversation.objects.filter(
-        participants=request.user
-    ).select_related('last_message')
+# @login_required
+# def messages_inbox(request):
+#     """Messages inbox"""
+#     conversations = Conversation.objects.filter(
+#         participants=request.user
+#     ).select_related('last_message')
+#
+#     unread_count = Message.objects.filter(
+#         recipient=request.user,
+#         is_read=False
+#     ).count()
+#
+#     context = {
+#         'conversations': conversations,
+#         'unread_count': unread_count,
+#     }
+#     return render(request, 'workstation/messages.html', context)
 
-    unread_count = Message.objects.filter(
-        recipient=request.user,
-        is_read=False
-    ).count()
-
-    context = {
-        'conversations': conversations,
-        'unread_count': unread_count,
-    }
-    return render(request, 'workstation/messages.html', context)
-
-
-@login_required
-def conversation_detail(request, conversation_id):
-    """View conversation"""
-    conversation = get_object_or_404(
-        Conversation,
-        id=conversation_id,
-        participants=request.user
-    )
-
-    messages_list = Message.objects.filter(
-        Q(sender=request.user, recipient__in=conversation.participants.all()) |
-        Q(sender__in=conversation.participants.all(), recipient=request.user)
-    ).order_by('created_at')
-
-    # Mark messages as read
-    messages_list.filter(recipient=request.user, is_read=False).update(is_read=True)
-
-    if request.method == 'POST':
-        form = MessageForm(request.POST)
-        if form.is_valid():
-            message = form.save(commit=False)
-            message.sender = request.user
-            message.recipient = conversation.participants.exclude(id=request.user.id).first()
-            message.save()
-
-            conversation.last_message = message
-            conversation.save()
-
-            return redirect('conversation_detail', conversation_id=conversation.id)
-    else:
-        form = MessageForm()
-
-    context = {
-        'conversation': conversation,
-        'messages': messages_list,
-        'form': form,
-    }
-    return render(request, 'workstation/conversation.html', context)
-
-
-@login_required
-def send_message(request, username):
-    """Send new message"""
-    recipient = get_object_or_404(User, username=username)
-
-    if request.method == 'POST':
-        form = MessageForm(request.POST)
-        if form.is_valid():
-            message = form.save(commit=False)
-            message.sender = request.user
-            message.recipient = recipient
-            message.save()
-
-            # Create or get conversation
-            conversation = Conversation.objects.filter(
-                participants=request.user
-            ).filter(
-                participants=recipient
-            ).first()
-
-            if not conversation:
-                conversation = Conversation.objects.create()
-                conversation.participants.add(request.user, recipient)
-
-            conversation.last_message = message
-            conversation.save()
-
-            messages.success(request, 'Message sent successfully!')
-            return redirect('conversation_detail', conversation_id=conversation.id)
-    else:
-        form = MessageForm()
-
-    context = {'form': form, 'recipient': recipient}
-    return render(request, 'workstation/send_message.html', context)
+# @login_required
+# def conversation_detail(request, conversation_id):
+#     """View conversation"""
+#     conversation = get_object_or_404(
+#         Conversation,
+#         id=conversation_id,
+#         participants=request.user
+#     )
+#
+#     messages_list = Message.objects.filter(
+#         Q(sender=request.user, recipient__in=conversation.participants.all()) |
+#         Q(sender__in=conversation.participants.all(), recipient=request.user)
+#     ).order_by('created_at')
+#
+#     # Mark messages as read
+#     messages_list.filter(recipient=request.user, is_read=False).update(is_read=True)
+#
+#     if request.method == 'POST':
+#         form = MessageForm(request.POST)
+#         if form.is_valid():
+#             message = form.save(commit=False)
+#             message.sender = request.user
+#             message.recipient = conversation.participants.exclude(id=request.user.id).first()
+#             message.save()
+#
+#             conversation.last_message = message
+#             conversation.save()
+#
+#             return redirect('conversation_detail', conversation_id=conversation.id)
+#     else:
+#         form = MessageForm()
+#
+#     context = {
+#         'conversation': conversation,
+#         'messages': messages_list,
+#         'form': form,
+#     }
+#     return render(request, 'workstation/conversation.html', context)
 
 
-@login_required
-def notifications(request):
-    """User notifications"""
-    notifications = request.user.notifications.all()[:50]
+# @login_required
+# def send_message(request, username):
+#     """Send new message"""
+#     recipient = get_object_or_404(User, username=username)
+#
+#     if request.method == 'POST':
+#         form = MessageForm(request.POST)
+#         if form.is_valid():
+#             message = form.save(commit=False)
+#             message.sender = request.user
+#             message.recipient = recipient
+#             message.save()
+#
+#             # Create or get conversation
+#             conversation = Conversation.objects.filter(
+#                 participants=request.user
+#             ).filter(
+#                 participants=recipient
+#             ).first()
+#
+#             if not conversation:
+#                 conversation = Conversation.objects.create()
+#                 conversation.participants.add(request.user, recipient)
+#
+#             conversation.last_message = message
+#             conversation.save()
+#
+#             messages.success(request, 'Message sent successfully!')
+#             return redirect('conversation_detail', conversation_id=conversation.id)
+#     else:
+#         form = MessageForm()
+#
+#     context = {'form': form, 'recipient': recipient}
+#     return render(request, 'workstation/send_message.html', context)
 
-    # Mark as read
-    notifications.filter(is_read=False).update(is_read=True)
 
-    context = {'notifications': notifications}
-    return render(request, 'workstation/notifications.html', context)
+# @login_required
+# def notifications(request):
+#     """User notifications"""
+#     notifications = request.user.notifications.all()[:50]
+#
+#     # Mark as read
+#     notifications.filter(is_read=False).update(is_read=True)
+#
+#     context = {'notifications': notifications}
+#     return render(request, 'workstation/notifications.html', context)
 
 
 @login_required
@@ -362,40 +361,40 @@ def join_project(request, slug):
     return redirect('project_detail', slug=slug)
 
 
-@login_required
-def create_thought(request):
-    """Create a thought/post"""
-    if request.method == 'POST':
-        form = ThoughtForm(request.POST)
-        if form.is_valid():
-            thought = form.save(commit=False)
-            thought.user = request.user
-            thought.save()
-            form.save_m2m()
-            messages.success(request, 'Thought posted!')
-            return redirect('home')
-    else:
-        form = ThoughtForm()
+# @login_required
+# def create_thought(request):
+#     """Create a thought/post"""
+#     if request.method == 'POST':
+#         form = ThoughtForm(request.POST)
+#         if form.is_valid():
+#             thought = form.save(commit=False)
+#             thought.user = request.user
+#             thought.save()
+#             form.save_m2m()
+#             messages.success(request, 'Thought posted!')
+#             return redirect('home')
+#     else:
+#         form = ThoughtForm()
+#
+#     context = {'form': form}
+#     return render(request, 'workstation/create_thought.html', context)
 
-    context = {'form': form}
-    return render(request, 'workstation/create_thought.html', context)
 
-
-@login_required
-def dashboard(request):
-    """User dashboard"""
-    my_projects = request.user.created_projects.all()
-    joined_projects = request.user.joined_projects.all()
-    recent_messages = Message.objects.filter(recipient=request.user)[:5]
-    notifications = request.user.notifications.filter(is_read=False)[:10]
-
-    context = {
-        'my_projects': my_projects,
-        'joined_projects': joined_projects,
-        'recent_messages': recent_messages,
-        'notifications': notifications,
-    }
-    return render(request, 'workstation/dashboard.html', context)
+# @login_required
+# def dashboard(request):
+#     """User dashboard"""
+#     my_projects = request.user.created_projects.all()
+#     joined_projects = request.user.joined_projects.all()
+#     recent_messages = Message.objects.filter(recipient=request.user)[:5]
+#     notifications = request.user.notifications.filter(is_read=False)[:10]
+#
+#     context = {
+#         'my_projects': my_projects,
+#         'joined_projects': joined_projects,
+#         'recent_messages': recent_messages,
+#         'notifications': notifications,
+#     }
+#     return render(request, 'workstation/dashboard.html', context)
 
 
 def user_register(request):
