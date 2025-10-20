@@ -1164,7 +1164,8 @@ form input,
 form textarea,
 form select {
     border-radius: 10px;
-    min-width: -webkit-fill-available;
+    width: 100%;
+    max-width: 100%;
     border: 2px solid green;
     padding: 12px;
     font-size: 14px;
