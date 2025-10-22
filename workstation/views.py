@@ -541,6 +541,8 @@ def user_login(request):
         else:
             messages.error(request, 'Invalid username or password.')
 
+    return render(request, 'workstation/login.html')
+
 
 @login_required
 def user_logout(request):
