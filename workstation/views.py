@@ -11,6 +11,34 @@ from django.utils import timezone
 from .forms import *
 import json
 
+from django.contrib.auth.forms import UserCreationForm
+from django import forms
+
+
+# @login_required
+# def complete_profile(request):
+#     """Complete user profile after social login"""
+#     # If user already has user_type, redirect to home
+#     if request.user.user_type:
+#         return redirect('home')
+#
+#     if request.method == 'POST':
+#         user_type = request.POST.get('user_type')
+#         bio = request.POST.get('bio', '')
+#
+#         if user_type:
+#             request.user.user_type = user_type
+#             if bio and hasattr(request.user, 'bio'):
+#                 request.user.bio = bio
+#             request.user.save()
+#
+#             messages.success(request, 'Profile completed successfully!')
+#             return redirect('home')
+#         else:
+#             messages.error(request, 'Please select your role.')
+#
+#     return render(request, 'workstation/complete_profile.html')
+
 
 def home(request):
     """Landing page"""
@@ -397,15 +425,98 @@ def join_project(request, slug):
 #     return render(request, 'workstation/dashboard.html', context)
 
 
+class UserRegistrationForm(UserCreationForm):
+    """User registration form"""
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'placeholder': 'your.email@example.com',
+            'id': 'id_email'
+        })
+    )
+    first_name = forms.CharField(
+        required=True,
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'John',
+            'id': 'id_first_name'
+        })
+    )
+    last_name = forms.CharField(
+        required=True,
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Doe',
+            'id': 'id_last_name'
+        })
+    )
+    user_type = forms.ChoiceField(
+        choices=User.USER_TYPES,
+        required=True,
+        widget=forms.Select(attrs={'id': 'id_user_type'})
+    )
+    username = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'placeholder': 'username',
+            'id': 'id_username'
+        })
+    )
+    password1 = forms.CharField(
+        label='Password',
+        widget=forms.PasswordInput(attrs={
+            'placeholder': '••••••••',
+            'id': 'id_password1'
+        })
+    )
+    password2 = forms.CharField(
+        label='Confirm Password',
+        widget=forms.PasswordInput(attrs={
+            'placeholder': '••••••••',
+            'id': 'id_password2'
+        })
+    )
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name', 'user_type', 'password1', 'password2']
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError('This email is already registered.')
+        return email
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data['email']
+        user.first_name = self.cleaned_data['first_name']
+        user.last_name = self.cleaned_data['last_name']
+        user.user_type = self.cleaned_data['user_type']
+        if commit:
+            user.save()
+        return user
+
+
 def user_register(request):
     """User registration"""
+    if request.user.is_authenticated:
+        return redirect('home')
+
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
+            # Check terms agreement
+            if not request.POST.get('terms'):
+                messages.error(request, 'You must agree to the Terms of Service and Privacy Policy.')
+                return render(request, 'workstation/register.html', {'form': form})
+
             user = form.save()
             login(request, user)
-            messages.success(request, 'Welcome to Workstation Hub!')
+            messages.success(request, f'Welcome to Workstation Hub, {user.first_name}!')
             return redirect('home')
+        else:
+            # Form has errors - they will be displayed in the template
+            pass
     else:
         form = UserRegistrationForm()
 
@@ -415,19 +526,20 @@ def user_register(request):
 
 def user_login(request):
     """User login"""
+    if request.user.is_authenticated:
+        return redirect('home')
+
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
-
         if user:
             login(request, user)
             next_url = request.GET.get('next', 'home')
+            messages.success(request, f'Welcome back, {user.first_name or user.username}!')
             return redirect(next_url)
         else:
             messages.error(request, 'Invalid username or password.')
-
-    return render(request, 'workstation/login.html')
 
 
 @login_required
