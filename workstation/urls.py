@@ -20,6 +20,8 @@ urlpatterns = [
     path('projects/<slug:slug>/support/', views.support_project, name='support_project'),
     path('projects/<slug:slug>/join/', views.join_project, name='join_project'),
     path('projects/<slug:slug>/comment/', views.add_comment, name='add_comment'),
+    path('projects/<slug:slug>/requests/', views.project_requests, name='project_requests'),
+    path('projects/<slug:slug>/requests/<int:request_id>/respond/', views.respond_to_request, name='respond_to_request'),
 
     # User profiles
     path('users/<str:username>/', views.profile, name='profile'),

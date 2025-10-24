@@ -191,3 +191,12 @@
 .alert.auto-hide {
     animation: slideInRight 0.5s ease-out, slideOutRight 0.5s ease-in 4.5s forwards;
 }
+
+.badge-notification {
+    background: #ef4444;
+    color: white;
+    font-size: 11px;
+    padding: 0.25rem 0.5rem;
+    border-radius: 10px;
+    margin-left: 0.5rem;
+}

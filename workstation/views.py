@@ -14,6 +14,92 @@ import json
 from django.contrib.auth.forms import UserCreationForm
 from django import forms
 
+@login_required
+def project_requests(request, slug):
+    """View and manage join requests for a project"""
+    project = get_object_or_404(Project, slug=slug)
+
+    # Check if user is the creator or has permission to manage requests
+    is_creator = project.creator == request.user
+    is_admin = ProjectMembership.objects.filter(
+        project=project,
+        user=request.user,
+        role__in=['creator', 'co-founder']
+    ).exists()
+
+    if not (is_creator or is_admin):
+        messages.error(request, "You don't have permission to view join requests.")
+        return redirect('project_detail', slug=slug)
+
+    # Get all pending requests
+    pending_requests = project.join_requests.filter(status='pending')
+    accepted_requests = project.join_requests.filter(status='accepted')[:10]
+    rejected_requests = project.join_requests.filter(status='rejected')[:10]
+
+    context = {
+        'project': project,
+        'pending_requests': pending_requests,
+        'accepted_requests': accepted_requests,
+        'rejected_requests': rejected_requests,
+    }
+
+    return render(request, 'workstation/project_requests.html', context)
+
+
+@login_required
+def respond_to_request(request, slug, request_id):
+    """Accept or reject a join request"""
+    if request.method != 'POST':
+        return redirect('project_requests', slug=slug)
+
+    project = get_object_or_404(Project, slug=slug)
+    join_request = get_object_or_404(JoinRequest, id=request_id, project=project)
+
+    # Check permissions
+    is_creator = project.creator == request.user
+    is_admin = ProjectMembership.objects.filter(
+        project=project,
+        user=request.user,
+        role__in=['creator', 'co-founder']
+    ).exists()
+
+    if not (is_creator or is_admin):
+        messages.error(request, "You don't have permission to respond to requests.")
+        return redirect('project_detail', slug=slug)
+
+    action = request.POST.get('action')
+
+    if action == 'accept':
+        join_request.status = 'accepted'
+        join_request.responded_at = timezone.now()
+        join_request.save()
+
+        # Add user as project member
+        role = join_request.desired_role if join_request.desired_role else 'member'
+        # Map desired role to actual role choices
+        role_mapping = {
+            'co-founder': 'co-founder',
+            'mentor': 'mentor',
+            'investor': 'investor',
+        }
+        membership_role = role_mapping.get(role.lower(), 'member')
+
+        ProjectMembership.objects.get_or_create(
+            user=join_request.user,
+            project=project,
+            defaults={'role': membership_role}
+        )
+
+        messages.success(request, f'{join_request.user.username} has been added to the project!')
+
+    elif action == 'reject':
+        join_request.status = 'rejected'
+        join_request.responded_at = timezone.now()
+        join_request.save()
+
+        messages.info(request, f'Request from {join_request.user.username} has been rejected.')
+
+    return redirect('project_requests', slug=slug)
 
 # @login_required
 # def complete_profile(request):
@@ -128,6 +214,8 @@ def project_detail(request, slug):
         status='pending'
     ).exists()
 
+    pending_requests_count = project.join_requests.filter(status='pending').count() if request.user == project.creator else 0
+
     context = {
         'project': project,
         'comments': comments,
@@ -136,6 +224,7 @@ def project_detail(request, slug):
         'is_member': is_member,
         'is_supporter': is_supporter,
         'has_join_request': has_join_request,
+        'pending_requests_count': pending_requests_count,
     }
     return render(request, 'workstation/project_detail.html', context)
 

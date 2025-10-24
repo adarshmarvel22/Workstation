@@ -5,6 +5,22 @@
 
 {% block content %}
 <div class="project-detail-wrapper">
+
+    {% if user == project.creator %}
+        {% if pending_requests_count > 0 %}
+        <a href="{% url 'project_requests' project.slug %}" class="btn btn-primary btn-full">
+            <i class="fas fa-user-check"></i>
+            Manage Requests
+            <span class="badge-notification">{{ pending_requests_count }}</span>
+        </a>
+        {% else %}
+        <a href="{% url 'project_requests' project.slug %}" class="btn btn-outline btn-full">
+            <i class="fas fa-user-check"></i>
+            Manage Requests
+        </a>
+        {% endif %}
+    {% endif %}
+
     <!-- Project Hero -->
     <div class="project-hero">
         {% if project.cover_image %}
