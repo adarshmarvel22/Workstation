@@ -226,7 +226,7 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'workstation_db',
+            'NAME': 'ws2',
             'USER': 'postgres',
             'PASSWORD': 'postgres',
             'HOST': 'localhost',

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load socialaccount %}
 
 {% block title %}Sign In - Workstation Hub{% endblock %}
 
@@ -71,12 +72,14 @@
         </div>
 
         <div class="social-login">
-            <button class="btn-social">
+            <a style="text-decoration: none;" role="button" href="{% provider_login_url 'google' %}"
+               class="btn-social">
                 <i class="fab fa-google"></i> Google
-            </button>
-            <button class="btn-social">
+            </a>
+            <a style="text-decoration: none;" role="button" href="{% provider_login_url 'github' %}"
+               class="btn-social">
                 <i class="fab fa-github"></i> GitHub
-            </button>
+            </a>
         </div>
 
         <div class="auth-footer">
