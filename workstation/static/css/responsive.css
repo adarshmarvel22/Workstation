@@ -842,7 +842,7 @@ img {
     .messages-container,
     .project-detail-wrapper {
         height: auto;
-        min-height: 100vh;
+        min-height: 15vh;
     }
 }
 
