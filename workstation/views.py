@@ -141,6 +141,26 @@ def project_detail(request, slug):
 
 
 @login_required
+def add_comment(request, slug):
+    """Add a comment to a project"""
+    if request.method == 'POST':
+        project = get_object_or_404(Project, slug=slug)
+        content = request.POST.get('content', '').strip()
+
+        if content:
+            Comment.objects.create(
+                project=project,
+                user=request.user,
+                content=content
+            )
+            messages.success(request, 'Comment posted successfully!')
+        else:
+            messages.error(request, 'Comment cannot be empty.')
+
+    return redirect('project_detail', slug=slug)
+
+
+@login_required
 def create_project(request):
     """Create new project"""
     if request.method == 'POST':

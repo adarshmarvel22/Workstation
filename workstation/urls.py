@@ -19,6 +19,7 @@ urlpatterns = [
     path('projects/<slug:slug>/edit/', views.edit_project, name='edit_project'),
     path('projects/<slug:slug>/support/', views.support_project, name='support_project'),
     path('projects/<slug:slug>/join/', views.join_project, name='join_project'),
+    path('projects/<slug:slug>/comment/', views.add_comment, name='add_comment'),
 
     # User profiles
     path('users/<str:username>/', views.profile, name='profile'),

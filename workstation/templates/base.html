@@ -16,6 +16,8 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
     <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+    <link rel="stylesheet" href="{% static 'css/utils.css' %}">
+
 
     {% block extra_css %}{% endblock %}
 </head>
@@ -96,6 +98,16 @@
         </div>
     </nav>
 
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <!-- Main Content -->
     <main class="main-content">
         {% block content %}{% endblock %}
@@ -114,6 +126,7 @@
     <!-- Scripts -->
     <script src="{% static 'js/main.js' %}"></script>
     <script src="{% static 'js/responsive.js' %}"></script>
+    <script src="{% static 'js/utils.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -104,7 +104,7 @@
                 <h2>Discussion ({{ comments.count }})</h2>
 
                 {% if user.is_authenticated %}
-                <form method="post" action="#" class="comment-form">
+                <form method="post" action="{% url 'add_comment' project.slug %}" class="comment-form">
                     {% csrf_token %}
                     <textarea name="content" placeholder="Share your thoughts..." rows="3"></textarea>
                     <button type="submit" class="btn btn-primary">
@@ -112,6 +112,8 @@
                     </button>
                 </form>
                 {% endif %}
+
+
 
                 <div class="comments-list">
                     {% for comment in comments %}
