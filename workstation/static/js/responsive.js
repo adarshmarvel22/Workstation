@@ -743,5 +743,3 @@ window.responsiveUtils = {
     closeMobileSidebars,
     handleResponsiveLayout
 };
-
-console.log('Responsive JavaScript loaded successfully ✓');
