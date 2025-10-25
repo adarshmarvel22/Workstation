@@ -12,6 +12,10 @@
         background-color: var(--bg-secondary);
     }
 
+    .wsbot{
+        max-width: 50%;
+    }
+
     .ws-ai-messages-container{
         z-index: 1;
         position: relative;
@@ -604,7 +608,9 @@
         </div>
         {% else %}
         <div class="empty-state">
-            <div class="empty-icon">🤖</div>
+            <div class="empty-icon">
+                <img class="wsbot" src="{% static 'images/wsbot.png' %}">
+            </div>
             <h3>Select an AI Worker to start</h3>
             <p>Choose from our specialized AI assistants on the left</p>
         </div>
