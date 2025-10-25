@@ -9,6 +9,14 @@
     .main-content {
         padding: 0 !important;
         margin: 0 !important;
+        background-color: var(--bg-secondary);
+    }
+
+    .ws-ai-messages-container{
+        z-index: 1;
+        position: relative;
+        right: 0px;
+        max-width: -webkit-fill-available;
     }
 
     /* Container */
@@ -16,7 +24,7 @@
         display: flex;
         height: calc(100vh - 70px); /* Adjust based on navbar height */
         overflow: hidden;
-        background: linear-gradient(135deg, #1a1f2e 0%, #2d3748 100%);
+       /* background: linear-gradient(135deg, #000000 0%, #0c0841 100%); */
     }
 
     /* Left Panel - AI Workers */
@@ -129,7 +137,7 @@
     }
 
     .chat-header {
-        padding: 1.5rem;
+        padding: 0.9rem;
         background: rgba(26, 31, 46, 0.6);
         backdrop-filter: blur(10px);
         border-bottom: 1px solid rgba(52, 211, 153, 0.2);
@@ -257,7 +265,7 @@
 
     /* Input Area */
     .input-area {
-        padding: 1.5rem;
+        padding: 0.9rem;
         background: rgba(26, 31, 46, 0.6);
         backdrop-filter: blur(10px);
         border-top: 1px solid rgba(52, 211, 153, 0.2);
@@ -449,6 +457,9 @@
     }
 
     @media (max-width: 768px) {
+        .message-input {
+            min-width: -webkit-fill-available;
+        }
         .ai-container {
             height: calc(100vh - 60px);
         }
@@ -562,7 +573,7 @@
             </div>
         </div>
 
-        <div class="messages-container" id="messagesContainer">
+        <div class="messages-container ws-ai-messages-container" id="messagesContainer">
             {% for message in messages %}
             <div class="message {{ message.sender }}">
                 <div class="message-avatar">
