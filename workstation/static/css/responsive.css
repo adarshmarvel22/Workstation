@@ -128,6 +128,7 @@
 
 @media (max-width: 968px) {
     .explore-container {
+        display: block;
         grid-template-columns: 1fr;
         padding: 1rem;
         gap: 1rem;
