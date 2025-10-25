@@ -27,19 +27,19 @@
         <div class="nav-container">
             <div class="nav-left">
                 <div class="logo">
-                    <span class="logo-icon">WH</span>
+                    <span class="logo-icon">WS</span>
                     <div class="logo-text">
                         <span class="logo-title">Workstation</span>
-                        <span class="logo-subtitle">Hub</span>
+                        <span class="logo-subtitle">Sigmoid</span>
                     </div>
                 </div>
 
                 <div class="nav-links">
                     <a href="{% url 'explore' %}" class="nav-link {% if request.resolver_match.url_name == 'explore' %}active{% endif %}">Explore</a>
                     <a href="{% url 'home' %}" class="nav-link">Start</a>
-                    <a href="#" class="nav-link">Collaborate</a>
-                    <a href="#" class="nav-link">Jobs</a>
-                    <a href="#" class="nav-link">Startups</a>
+                    <a href="{% url 'thoughts_feed' %}" class="nav-link">Thoughts</a>
+<!--                    <a href="#" class="nav-link">Jobs</a>-->
+<!--                    <a href="#" class="nav-link">Startups</a>-->
                     <a href="{% url 'ai_workers_dashboard' %}" class="nav-link">AI Workers</a>
                 </div>
             </div>
@@ -116,7 +116,7 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2026 Workstation Hub. Built with ❤️ for the maker community.</p>
+            <p>&copy; 2026 Workstation. Built with ❤️ for the maker community.</p>
         </div>
     </footer>
 

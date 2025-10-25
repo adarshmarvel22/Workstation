@@ -95,18 +95,36 @@ class MessageForm(forms.ModelForm):
 
 
 class ThoughtForm(forms.ModelForm):
-    """Quick thought/post form"""
-
     class Meta:
         model = Thought
-        fields = ['content', 'tags']
+        fields = ['content', 'image', 'tags']
         widgets = {
             'content': forms.Textarea(attrs={
-                'rows': 3,
                 'placeholder': 'Share your thoughts...',
-                'class': 'form-control'
+                'rows': 4,
+                'class': 'thought-textarea'
             }),
-            'tags': forms.CheckboxSelectMultiple(),
+            'tags': forms.SelectMultiple(attrs={
+                'class': 'tags-select'
+            })
+        }
+
+
+class DailyPostForm(forms.ModelForm):
+    class Meta:
+        model = DailyPost
+        fields = ['title', 'content', 'post_type', 'image', 'author']
+        widgets = {
+            'content': forms.Textarea(attrs={
+                'placeholder': 'Enter quote, greeting, or tip...',
+                'rows': 4
+            }),
+            'title': forms.TextInput(attrs={
+                'placeholder': 'Optional title'
+            }),
+            'author': forms.TextInput(attrs={
+                'placeholder': 'Author or source (for quotes)'
+            })
         }
 
 

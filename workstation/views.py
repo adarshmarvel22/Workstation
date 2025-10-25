@@ -13,6 +13,11 @@ import json
 
 from django.contrib.auth.forms import UserCreationForm
 from django import forms
+from django.contrib.admin.views.decorators import staff_member_required
+from datetime import date, timedelta
+import random
+from .forms import ThoughtForm, DailyPostForm
+
 
 @login_required
 def project_requests(request, slug):
@@ -829,19 +834,115 @@ def notifications(request):
     return render(request, 'workstation/notifications.html', context)
 
 
+# @login_required
+# def create_thought(request):
+#     """Create a new thought/post"""
+#     if request.method == 'POST':
+#         form = ThoughtForm(request.POST)
+#         if form.is_valid():
+#             thought = form.save(commit=False)
+#             thought.user = request.user
+#             thought.save()
+#             form.save_m2m()  # Save the many-to-many tags
+#
+#             messages.success(request, 'Thought posted successfully!')
+#             return redirect('profile', username=request.user.username)
+#         else:
+#             messages.error(request, 'Please correct the errors below')
+#     else:
+#         form = ThoughtForm()
+#
+#     context = {
+#         'form': form,
+#     }
+#     return render(request, 'workstation/create_thought.html', context)
+def get_daily_post():
+    """Get today's daily post or a random previous one"""
+    today = date.today()
+
+    # Try to get today's post
+    daily_post = DailyPost.objects.filter(
+        date=today,
+        is_active=True
+    ).first()
+
+    # If no post for today, get a random previous post
+    if not daily_post:
+        previous_posts = DailyPost.objects.filter(
+            is_active=True
+        ).order_by('-date')
+
+        if previous_posts.exists():
+            daily_post = random.choice(previous_posts)
+
+    return daily_post
+
+
+@login_required
+def thoughts_feed(request):
+    """Main thoughts feed page"""
+    # Get all thoughts with annotations
+    thoughts = Thought.objects.select_related('user').prefetch_related(
+        'likes', 'tags', 'comments', 'reposts'
+    ).annotate(
+        like_count=Count('likes'),
+        comment_count=Count('comments'),
+        repost_count=Count('reposts')
+    ).order_by('-created_at')
+
+    # Get daily post
+    daily_post = get_daily_post()
+
+    # Get user's liked thoughts
+    liked_thought_ids = request.user.liked_thoughts.values_list('id', flat=True)
+
+    # Get user's reposted thoughts
+    reposted_thought_ids = request.user.reposted_thoughts.values_list('id', flat=True)
+
+    context = {
+        'thoughts': thoughts[:50],  # Limit to 50 for performance
+        'daily_post': daily_post,
+        'liked_thought_ids': list(liked_thought_ids),
+        'reposted_thought_ids': list(reposted_thought_ids),
+    }
+
+    return render(request, 'workstation/thoughts_feed.html', context)
+
+
+@login_required
+def thought_detail(request, thought_id):
+    """Detail view for a single thought"""
+    thought = get_object_or_404(
+        Thought.objects.select_related('user').prefetch_related(
+            'likes', 'tags', 'comments__user', 'reposts'
+        ),
+        id=thought_id
+    )
+
+    comments = thought.comments.filter(parent_comment=None).order_by('created_at')
+
+    context = {
+        'thought': thought,
+        'comments': comments,
+        'is_liked': request.user in thought.likes.all(),
+        'is_reposted': request.user in thought.reposts.all(),
+    }
+
+    return render(request, 'workstation/thought_detail.html', context)
+
+
 @login_required
 def create_thought(request):
     """Create a new thought/post"""
     if request.method == 'POST':
-        form = ThoughtForm(request.POST)
+        form = ThoughtForm(request.POST, request.FILES)
         if form.is_valid():
             thought = form.save(commit=False)
             thought.user = request.user
             thought.save()
             form.save_m2m()  # Save the many-to-many tags
-
             messages.success(request, 'Thought posted successfully!')
-            return redirect('profile', username=request.user.username)
+            return redirect('thoughts_feed')
         else:
             messages.error(request, 'Please correct the errors below')
     else:
@@ -852,6 +953,158 @@ def create_thought(request):
     }
     return render(request, 'workstation/create_thought.html', context)
 
+
+@login_required
+def like_thought(request, thought_id):
+    """Like or unlike a thought"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid method'}, status=405)
+
+    thought = get_object_or_404(Thought, id=thought_id)
+
+    if request.user in thought.likes.all():
+        thought.likes.remove(request.user)
+        liked = False
+    else:
+        thought.likes.add(request.user)
+        liked = True
+
+    return JsonResponse({
+        'liked': liked,
+        'like_count': thought.likes.count()
+    })
+
+
+@login_required
+def comment_thought(request, thought_id):
+    """Add a comment to a thought"""
+    if request.method != 'POST':
+        return redirect('thought_detail', thought_id=thought_id)
+
+    thought = get_object_or_404(Thought, id=thought_id)
+    content = request.POST.get('content', '').strip()
+    parent_id = request.POST.get('parent_id')
+
+    if not content:
+        messages.error(request, 'Comment cannot be empty')
+        return redirect('thought_detail', thought_id=thought_id)
+
+    parent_comment = None
+    if parent_id:
+        parent_comment = get_object_or_404(ThoughtComment, id=parent_id)
+
+    ThoughtComment.objects.create(
+        thought=thought,
+        user=request.user,
+        content=content,
+        parent_comment=parent_comment
+    )
+
+    messages.success(request, 'Comment added!')
+    return redirect('thoughts_feed')
+
+
+@login_required
+def repost_thought(request, thought_id):
+    """Repost a thought"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid method'}, status=405)
+
+    original_thought = get_object_or_404(Thought, id=thought_id)
+
+    # Check if already reposted
+    if request.user in original_thought.reposts.all():
+        # Remove repost
+        original_thought.reposts.remove(request.user)
+        # Delete the repost thought
+        Thought.objects.filter(
+            user=request.user,
+            original_thought=original_thought,
+            is_repost=True
+        ).delete()
+        reposted = False
+    else:
+        # Add repost
+        original_thought.reposts.add(request.user)
+        # Create repost thought
+        Thought.objects.create(
+            user=request.user,
+            content=original_thought.content,
+            image=original_thought.image,
+            original_thought=original_thought,
+            is_repost=True
+        )
+        reposted = True
+
+    return JsonResponse({
+        'reposted': reposted,
+        'repost_count': original_thought.reposts.count()
+    })
+
+
+@login_required
+def delete_thought(request, thought_id):
+    """Delete a thought"""
+    if request.method != 'POST':
+        return redirect('thoughts_feed')
+
+    thought = get_object_or_404(Thought, id=thought_id)
+
+    # Only owner can delete (or if it's a repost)
+    if thought.user != request.user:
+        messages.error(request, "You can only delete your own thoughts.")
+        return redirect('thoughts_feed')
+
+    thought.delete()
+    messages.success(request, 'Thought deleted successfully!')
+    return redirect('thoughts_feed')
+
+
+# Admin Daily Post Management
+@staff_member_required
+def create_daily_post(request):
+    """Create a new daily post (admin only)"""
+    if request.method == 'POST':
+        form = DailyPostForm(request.POST, request.FILES)
+        if form.is_valid():
+            daily_post = form.save(commit=False)
+            daily_post.created_by = request.user
+            daily_post.save()
+            messages.success(request, 'Daily post created successfully!')
+            return redirect('dashboard')
+        else:
+            messages.error(request, 'Please correct the errors below')
+    else:
+        form = DailyPostForm()
+
+    context = {
+        'form': form,
+    }
+    return render(request, 'workstation/create_daily_post.html', context)
+
+
+@staff_member_required
+def manage_daily_posts(request):
+    """Manage all daily posts (admin only)"""
+    posts = DailyPost.objects.all().order_by('-date')
+
+    context = {
+        'posts': posts,
+    }
+    return render(request, 'workstation/manage_daily_posts.html', context)
+
+
+@staff_member_required
+def delete_daily_post(request, post_id):
+    """Delete a daily post (admin only)"""
+    if request.method != 'POST':
+        return redirect('manage_daily_posts')
+
+    post = get_object_or_404(DailyPost, id=post_id)
+    post.delete()
+
+    messages.success(request, 'Daily post deleted successfully!')
+    return redirect('manage_daily_posts')
 
 @login_required
 def dashboard(request):

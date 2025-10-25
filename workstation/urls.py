@@ -47,7 +47,18 @@ urlpatterns = [
     path('notifications/read-all/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
 
     # Thoughts
+    path('thoughts/', views.thoughts_feed, name='thoughts_feed'),
     path('thoughts/create/', views.create_thought, name='create_thought'),
+    path('thoughts/<int:thought_id>/', views.thought_detail, name='thought_detail'),
+    path('thoughts/<int:thought_id>/like/', views.like_thought, name='like_thought'),
+    path('thoughts/<int:thought_id>/comment/', views.comment_thought, name='comment_thought'),
+    path('thoughts/<int:thought_id>/repost/', views.repost_thought, name='repost_thought'),
+    path('thoughts/<int:thought_id>/delete/', views.delete_thought, name='delete_thought'),
+
+    # Daily Posts (Admin only)
+    path('admin/daily-post/create/', views.create_daily_post, name='create_daily_post'),
+    path('admin/daily-posts/', views.manage_daily_posts, name='manage_daily_posts'),
+    path('admin/daily-post/<int:post_id>/delete/', views.delete_daily_post, name='delete_daily_post'),
 
     # AI Workers URLs
     path('ai-workers/', views.ai_workers_dashboard, name='ai_workers_dashboard'),

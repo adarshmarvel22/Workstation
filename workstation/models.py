@@ -152,21 +152,79 @@ class ProjectMembership(models.Model):
         unique_together = ('user', 'project')
 
 
+class DailyPost(models.Model):
+    """Daily posts/quotes/memes from admin"""
+    POST_TYPES = (
+        ('quote', 'Quote of the Day'),
+        ('greeting', 'Greeting'),
+        ('meme', 'Meme'),
+        ('tip', 'Tip of the Day'),
+    )
+
+    title = models.CharField(max_length=200, blank=True)
+    content = models.TextField()
+    post_type = models.CharField(max_length=20, choices=POST_TYPES, default='quote')
+    image = models.ImageField(upload_to='daily_posts/', blank=True, null=True)
+    author = models.CharField(max_length=200, blank=True, help_text="Quote author or source")
+    is_active = models.BooleanField(default=True)
+    date = models.DateField(auto_now_add=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'daily_posts'
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"{self.get_post_type_display()} - {self.date}"
+
+
 class Thought(models.Model):
     """Quick thoughts/posts by users"""
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='thoughts')
     content = models.TextField(max_length=1000)
+    image = models.ImageField(upload_to='thoughts/', blank=True, null=True)  # Add image support
     tags = models.ManyToManyField(Tag, blank=True, related_name='thoughts')
     likes = models.ManyToManyField(User, blank=True, related_name='liked_thoughts')
+    reposts = models.ManyToManyField(User, blank=True, related_name='reposted_thoughts')
+    original_thought = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True,
+                                         related_name='reposts_of')  # For reposts
+    is_repost = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.user.username} - {self.content[:50]}"
 
+    def get_like_count(self):
+        return self.likes.count()
+
+    def get_comment_count(self):
+        return self.comments.count()
+
+    def get_repost_count(self):
+        return self.reposts.count()
+
     class Meta:
         db_table = 'thoughts'
         ordering = ['-created_at']
+
+
+class ThoughtComment(models.Model):
+    """Comments on thoughts"""
+    thought = models.ForeignKey(Thought, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='thought_comments')
+    content = models.TextField(max_length=500)
+    parent_comment = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'thought_comments'
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"{self.user.username} on {self.thought.id}"
 
 
 class Message(models.Model):

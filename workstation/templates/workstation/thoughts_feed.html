@@ -1,0 +1,1012 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Thoughts - Workstation Hub{% endblock %}
+
+{% block content %}
+<div class="thoughts-feed-wrapper">
+    <div class="thoughts-container">
+        <div class="thoughts-grid">
+            <!-- Main Feed -->
+            <div class="thoughts-main">
+                <!-- Create Thought Box -->
+                <div class="create-thought-card">
+                    <div class="create-header">
+                        <div class="user-avatar-small">
+                            {% if user.profile_image %}
+                                <img src="{{ user.profile_image.url }}" alt="{{ user.username }}">
+                            {% else %}
+                                <div class="avatar-placeholder-round">{{ user.username|first|upper }}</div>
+                            {% endif %}
+                        </div>
+                        <button class="create-input" onclick="location.href='{% url 'create_thought' %}'">
+                            Share your thoughts, {{ user.first_name|default:user.username }}...
+                        </button>
+                    </div>
+                    <div class="create-actions">
+                        <button class="action-btn" onclick="location.href='{% url 'create_thought' %}'">
+                            <i class="fas fa-image"></i> Photo
+                        </button>
+                        <button class="action-btn" onclick="location.href='{% url 'create_thought' %}'">
+                            <i class="fas fa-tag"></i> Tag
+                        </button>
+                        <button class="action-btn" onclick="location.href='{% url 'create_thought' %}'">
+                            <i class="fas fa-lightbulb"></i> Idea
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Daily Post -->
+                {% if daily_post %}
+                <div class="daily-post-card">
+                    <div class="daily-post-header">
+                        <div class="daily-badge">
+                            <i class="fas fa-{% if daily_post.post_type == 'quote' %}quote-right{% elif daily_post.post_type == 'meme' %}laugh{% elif daily_post.post_type == 'tip' %}lightbulb{% else %}star{% endif %}"></i>
+                            <span>{{ daily_post.get_post_type_display }}</span>
+                        </div>
+                        <span class="daily-date">{{ daily_post.date|date:"M d, Y" }}</span>
+                    </div>
+
+                    {% if daily_post.title %}
+                    <h3 class="daily-title">{{ daily_post.title }}</h3>
+                    {% endif %}
+
+                    <div class="daily-content">
+                        {% if daily_post.image %}
+                        <img src="{{ daily_post.image.url }}" alt="{{ daily_post.title }}" class="daily-image">
+                        {% endif %}
+
+                        <p class="daily-text">{{ daily_post.content }}</p>
+
+                        {% if daily_post.author %}
+                        <p class="daily-author">— {{ daily_post.author }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Thoughts Feed -->
+                <div class="thoughts-list ws-thoughts-list">
+                    {% for thought in thoughts %}
+                    <div class="thought-card" data-thought-id="{{ thought.id }}">
+                        <div class="thought-header">
+                            <div class="user-info-thought">
+                                <div class="user-avatar-thought">
+                                    {% if thought.user.profile_image %}
+                                        <img src="{{ thought.user.profile_image.url }}" alt="{{ thought.user.username }}">
+                                    {% else %}
+                                        <div class="avatar-placeholder-thought">{{ thought.user.username|first|upper }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="user-details-thought">
+                                    <a href="{% url 'profile' thought.user.username %}" class="user-name">
+                                        {{ thought.user.get_full_name|default:thought.user.username }}
+                                    </a>
+                                    <span class="user-meta">
+                                        @{{ thought.user.username }} · {{ thought.created_at|timesince }} ago
+                                    </span>
+                                </div>
+                            </div>
+
+                            {% if thought.user == user %}
+                            <div class="thought-menu">
+                                <button class="btn-menu" onclick="toggleThoughtMenu({{ thought.id }})">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                                <div class="menu-dropdown" id="menu-{{ thought.id }}">
+                                    <form method="post" action="{% url 'delete_thought' thought.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" onclick="return confirm('Delete this thought?')">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        {% if thought.is_repost %}
+                        <div class="repost-indicator">
+                            <i class="fas fa-retweet"></i>
+                            <span>{{ thought.user.username }} reposted</span>
+                        </div>
+                        {% endif %}
+
+                        <div class="thought-content">
+                            <p>{{ thought.content|linebreaks }}</p>
+
+                            {% if thought.image %}
+                            <img src="{{ thought.image.url }}" alt="Thought image" class="thought-image">
+                            {% endif %}
+
+                            {% if thought.tags.all %}
+                            <div class="thought-tags">
+                                {% for tag in thought.tags.all %}
+                                <a href="{% url 'explore' %}?tags={{ tag.slug }}" class="thought-tag">#{{ tag.name }}</a>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="thought-stats">
+                            <span>{{ thought.like_count }} {% if thought.like_count == 1 %}like{% else %}likes{% endif %}</span>
+                            <span>{{ thought.comment_count }} {% if thought.comment_count == 1 %}comment{% else %}comments{% endif %}</span>
+                            <span>{{ thought.repost_count }} {% if thought.repost_count == 1 %}repost{% else %}reposts{% endif %}</span>
+                        </div>
+
+                        <div class="thought-actions">
+                            <button class="action-btn-thought {% if thought.id in liked_thought_ids %}active{% endif %}"
+                                    onclick="likeThought({{ thought.id }}, this)">
+                                <i class="{% if thought.id in liked_thought_ids %}fas{% else %}far{% endif %} fa-heart"></i>
+                                <span>Like</span>
+                            </button>
+
+                            <button class="action-btn-thought" onclick="showCommentBox({{ thought.id }})">
+                                <i class="far fa-comment"></i>
+                                <span>Comment</span>
+                            </button>
+
+                            <button class="action-btn-thought {% if thought.id in reposted_thought_ids %}active{% endif %}"
+                                    onclick="repostThought({{ thought.id }}, this)">
+                                <i class="fas fa-retweet"></i>
+                                <span>Repost</span>
+                            </button>
+
+                            <button class="action-btn-thought" onclick="shareThought({{ thought.id }})">
+                                <i class="fas fa-share"></i>
+                                <span>Share</span>
+                            </button>
+                        </div>
+
+                        <!-- Comment Box -->
+                        <div class="comment-box" id="comment-box-{{ thought.id }}" style="display: none;">
+                            <form method="post" action="{% url 'comment_thought' thought.id %}" class="comment-form-inline">
+                                {% csrf_token %}
+                                <div class="comment-input-wrapper">
+                                    <div class="user-avatar-tiny">
+                                        {% if user.profile_image %}
+                                            <img src="{{ user.profile_image.url }}" alt="{{ user.username }}">
+                                        {% else %}
+                                            <div class="avatar-placeholder-tiny">{{ user.username|first|upper }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <input type="text" name="content" placeholder="Write a comment..." required>
+                                    <button type="submit" class="btn-submit-comment">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Comments Preview -->
+                        {% if thought.comments.all %}
+                        <div class="comments-preview">
+                            {% for comment in thought.comments.all|slice:":2" %}
+                            <div class="comment-item-preview">
+                                <a href="{% url 'profile' comment.user.username %}" class="comment-user">{{ comment.user.username }}</a>
+                                <span class="comment-text">{{ comment.content }}</span>
+                            </div>
+                            {% endfor %}
+                            {% if thought.comment_count > 2 %}
+                            <button class="view-more-comments" onclick="location.href='{% url 'thought_detail' thought.id %}'">
+                                View all {{ thought.comment_count }} comments
+                            </button>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="empty-state-thoughts">
+                        <i class="fas fa-comment-dots"></i>
+                        <h3>No thoughts yet</h3>
+                        <p>Be the first to share your thoughts!</p>
+                        <a href="{% url 'create_thought' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Create Thought
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="thoughts-sidebar">
+                <!-- Trending Tags -->
+                <div class="sidebar-card-thought">
+                    <h3><i class="fas fa-fire"></i> Trending Topics</h3>
+                    <div class="trending-list">
+                        <a href="{% url 'explore' %}?tags=ai" class="trending-item">
+                            <span class="tag-name">#AI</span>
+                            <span class="tag-count">245 posts</span>
+                        </a>
+                        <a href="{% url 'explore' %}?tags=startup" class="trending-item">
+                            <span class="tag-name">#Startup</span>
+                            <span class="tag-count">189 posts</span>
+                        </a>
+                        <a href="{% url 'explore' %}?tags=webdev" class="trending-item">
+                            <span class="tag-name">#WebDev</span>
+                            <span class="tag-count">156 posts</span>
+                        </a>
+                        <a href="{% url 'explore' %}?tags=design" class="trending-item">
+                            <span class="tag-name">#Design</span>
+                            <span class="tag-count">134 posts</span>
+                        </a>
+                        <a href="{% url 'explore' %}?tags=tech" class="trending-item">
+                            <span class="tag-name">#Tech</span>
+                            <span class="tag-count">98 posts</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Who to Follow -->
+                <div class="sidebar-card-thought">
+                    <h3><i class="fas fa-user-plus"></i> Who to Follow</h3>
+                    <div class="follow-suggestions">
+                        <!-- Add dynamic user suggestions here -->
+                        <p class="text-muted-small">Coming soon...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.thoughts-feed-wrapper {
+    min-height: 100vh;
+    background: var(--bg-primary);
+    padding: 2rem 0;
+}
+
+.thoughts-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.thoughts-grid {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 2rem;
+}
+
+.thoughts-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Create Thought Card */
+.create-thought-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.create-header {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.user-avatar-small {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.user-avatar-small img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder-round {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-primary);
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.create-input {
+    flex: 1;
+    padding: 1rem 1.5rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    color: var(--text-muted);
+    font-size: 15px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.create-input:hover {
+    background: var(--bg-hover);
+    border-color: var(--accent-primary);
+}
+
+.create-actions {
+    display: flex;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.action-btn {
+    flex: 1;
+    padding: 0.75rem;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.action-btn:hover {
+    background: var(--bg-tertiary);
+    color: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+.action-btn i {
+    font-size: 16px;
+}
+
+/* Daily Post Card */
+.daily-post-card {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+    border: 2px solid var(--accent-primary);
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+.daily-post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.daily-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--accent-primary);
+    color: white;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.daily-date {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.daily-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.daily-content {
+    margin-top: 1rem;
+}
+
+.daily-image {
+    width: 100%;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.daily-text {
+    font-size: 18px;
+    line-height: 1.8;
+    color: var(--text-primary);
+    font-style: italic;
+    margin-bottom: 1rem;
+}
+
+.daily-author {
+    font-size: 15px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-align: right;
+}
+
+/* Thought Card */
+.thought-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.2s;
+}
+
+.thought-card:hover {
+    border-color: var(--border-hover);
+}
+
+.thought-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.user-info-thought {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.user-avatar-thought {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.user-avatar-thought img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder-thought {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-primary);
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.user-details-thought {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.user-name:hover {
+    color: var(--accent-primary);
+}
+
+.user-meta {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.thought-menu {
+    position: relative;
+}
+
+.btn-menu {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-menu:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.menu-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.5rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: var(--shadow-lg);
+    min-width: 150px;
+    z-index: 100;
+}
+
+.menu-dropdown.show {
+    display: block;
+}
+
+.menu-dropdown button {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.menu-dropdown button:hover {
+    background: var(--bg-tertiary);
+}
+
+.repost-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.repost-indicator i {
+    color: var(--accent-primary);
+}
+
+.thought-content {
+    margin-bottom: 1rem;
+}
+
+.thought-content p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    white-space: pre-wrap;
+}
+
+.thought-image {
+    width: 100%;
+    border-radius: 8px;
+    margin-top: 1rem;
+    border: 1px solid var(--border-color);
+}
+
+.thought-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.thought-tag {
+    color: var(--accent-primary);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.thought-tag:hover {
+    text-decoration: underline;
+}
+
+.thought-stats {
+    display: flex;
+    gap: 1.5rem;
+    padding: 0.75rem 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 0.5rem;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.thought-actions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+}
+
+.action-btn-thought {
+    padding: 0.75rem;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 8px;
+}
+
+.action-btn-thought:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.action-btn-thought.active {
+    color: var(--accent-primary);
+}
+
+.action-btn-thought i {
+    font-size: 18px;
+}
+
+/* Comment Box */
+.comment-box {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.comment-input-wrapper {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.user-avatar-tiny {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.user-avatar-tiny img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder-tiny {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-primary);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.comment-input-wrapper input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.comment-input-wrapper input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.btn-submit-comment {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-submit-comment:hover {
+    background: var(--accent-hover);
+}
+
+.comments-preview {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.comment-item-preview {
+    padding: 0.5rem 0;
+    font-size: 14px;
+}
+
+.comment-user {
+    font-weight: 600;
+    color: var(--text-primary);
+    text-decoration: none;
+    margin-right: 0.5rem;
+}
+
+.comment-user:hover {
+    text-decoration: underline;
+}
+
+.comment-text {
+    color: var(--text-secondary);
+}
+
+.view-more-comments {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.view-more-comments:hover {
+    color: var(--accent-primary);
+}
+
+/* Sidebar */
+.thoughts-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: sticky;
+    top: 80px;
+    height: fit-content;
+}
+
+.sidebar-card-thought {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.sidebar-card-thought h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sidebar-card-thought h3 i {
+    color: var(--accent-primary);
+}
+
+.trending-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.trending-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.trending-item:hover {
+    background: var(--bg-hover);
+}
+
+.tag-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.tag-count {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.text-muted-small {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.empty-state-thoughts {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-state-thoughts i {
+    font-size: 64px;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+.empty-state-thoughts h3 {
+    font-size: 24px;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state-thoughts p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 1200px) {
+    .thoughts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .thoughts-sidebar {
+        position: static;
+    }
+}
+
+@media (max-width: 768px) {
+    .thoughts-container {
+        padding: 0 1rem;
+    }
+
+    .thought-actions {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .action-btn-thought span {
+        display: none;
+    }
+}
+.thoughts-list{
+    display: grid;
+    gap: 1.5em;
+}
+</style>
+
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function likeThought(thoughtId, button) {
+    fetch(`/thoughts/${thoughtId}/like/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const icon = button.querySelector('i');
+        if (data.liked) {
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+            button.classList.add('active');
+        } else {
+            icon.classList.remove('fas');
+            icon.classList.add('far');
+            button.classList.remove('active');
+        }
+
+        // Update like count
+        const card = button.closest('.thought-card');
+        const stats = card.querySelector('.thought-stats');
+        const likeSpan = stats.children[0];
+        likeSpan.textContent = `${data.like_count} ${data.like_count === 1 ? 'like' : 'likes'}`;
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function repostThought(thoughtId, button) {
+    fetch(`/thoughts/${thoughtId}/repost/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.reposted) {
+            button.classList.add('active');
+        } else {
+            button.classList.remove('active');
+        }
+
+        // Update repost count
+        const card = button.closest('.thought-card');
+        const stats = card.querySelector('.thought-stats');
+        const repostSpan = stats.children[2];
+        repostSpan.textContent = `${data.repost_count} ${data.repost_count === 1 ? 'repost' : 'reposts'}`;
+
+        // Reload page to show new repost
+        if (data.reposted) {
+            setTimeout(() => location.reload(), 500);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function showCommentBox(thoughtId) {
+    const box = document.getElementById(`comment-box-${thoughtId}`);
+    if (box.style.display === 'none') {
+        box.style.display = 'block';
+        box.querySelector('input').focus();
+    } else {
+        box.style.display = 'none';
+    }
+}
+
+function shareThought(thoughtId) {
+    const url = window.location.origin + `/thoughts/${thoughtId}/`;
+    if (navigator.share) {
+        navigator.share({
+            title: 'Check out this thought',
+            url: url
+        });
+    } else {
+        navigator.clipboard.writeText(url);
+        alert('Link copied to clipboard!');
+    }
+}
+
+function toggleThoughtMenu(thoughtId) {
+    const menu = document.getElementById(`menu-${thoughtId}`);
+    const allMenus = document.querySelectorAll('.menu-dropdown');
+
+    allMenus.forEach(m => {
+        if (m !== menu) {
+            m.classList.remove('show');
+        }
+    });
+
+    menu.classList.toggle('show');
+}
+
+// Close menus when clicking outside
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.thought-menu')) {
+        document.querySelectorAll('.menu-dropdown').forEach(m => {
+            m.classList.remove('show');
+        });
+    }
+});
+</script>
+{% endblock %}
