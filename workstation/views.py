@@ -195,38 +195,38 @@ def explore(request):
     return render(request, 'workstation/explore.html', context)
 
 
-@login_required
-def project_detail(request, slug):
-    """Project detail page"""
-    project = get_object_or_404(Project, slug=slug)
-    project.views_count += 1
-    project.save(update_fields=['views_count'])
-
-    comments = project.comments.filter(parent_comment=None)
-    updates = project.updates.all()[:5]
-    members = project.projectmembership_set.all()
-
-    is_member = request.user in project.members.all()
-    is_supporter = request.user in project.supporters.all()
-    has_join_request = JoinRequest.objects.filter(
-        user=request.user,
-        project=project,
-        status='pending'
-    ).exists()
-
-    pending_requests_count = project.join_requests.filter(status='pending').count() if request.user == project.creator else 0
-
-    context = {
-        'project': project,
-        'comments': comments,
-        'updates': updates,
-        'members': members,
-        'is_member': is_member,
-        'is_supporter': is_supporter,
-        'has_join_request': has_join_request,
-        'pending_requests_count': pending_requests_count,
-    }
-    return render(request, 'workstation/project_detail.html', context)
+# @login_required
+# def project_detail(request, slug):
+#     """Project detail page"""
+#     project = get_object_or_404(Project, slug=slug)
+#     project.views_count += 1
+#     project.save(update_fields=['views_count'])
+#
+#     comments = project.comments.filter(parent_comment=None)
+#     updates = project.updates.all()[:5]
+#     members = project.projectmembership_set.all()
+#
+#     is_member = request.user in project.members.all()
+#     is_supporter = request.user in project.supporters.all()
+#     has_join_request = JoinRequest.objects.filter(
+#         user=request.user,
+#         project=project,
+#         status='pending'
+#     ).exists()
+#
+#     pending_requests_count = project.join_requests.filter(status='pending').count() if request.user == project.creator else 0
+#
+#     context = {
+#         'project': project,
+#         'comments': comments,
+#         'updates': updates,
+#         'members': members,
+#         'is_member': is_member,
+#         'is_supporter': is_supporter,
+#         'has_join_request': has_join_request,
+#         'pending_requests_count': pending_requests_count,
+#     }
+#     return render(request, 'workstation/project_detail.html', context)
 
 
 @login_required
@@ -1116,3 +1116,203 @@ def delete_conversation(request, conversation_id):
     worker_id = conversation.worker.id
     conversation.delete()
     return redirect('ai_conversation', worker_id=worker_id)
+
+
+def has_edit_permission(user, project):
+    """Check if user has permission to edit the project"""
+    if user == project.creator:
+        return True
+
+    membership = ProjectMembership.objects.filter(
+        user=user,
+        project=project,
+        is_active=True
+    ).first()
+
+    if membership:
+        # Co-founders always have edit access
+        if membership.role == 'co-founder':
+            return True
+        # Check explicit edit permission
+        return membership.can_edit
+
+    return False
+
+
+@login_required
+def edit_project(request, slug):
+    """Edit project details"""
+    project = get_object_or_404(Project, slug=slug)
+
+    # Check edit permission
+    if not has_edit_permission(request.user, project):
+        messages.error(request, "You don't have permission to edit this project.")
+        return redirect('project_detail', slug=slug)
+
+    if request.method == 'POST':
+        # Handle form submission
+        project.title = request.POST.get('title')
+        project.description = request.POST.get('description')
+        project.short_description = request.POST.get('short_description')
+        project.project_type = request.POST.get('project_type')
+        project.stage = request.POST.get('stage')
+        project.status = request.POST.get('status')
+        project.collaboration_needed = request.POST.get('collaboration_needed', '')
+
+        if 'cover_image' in request.FILES:
+            project.cover_image = request.FILES['cover_image']
+
+        project.save()
+
+        # Handle tags
+        tags_input = request.POST.get('tags', '')
+        if tags_input:
+            tag_names = [t.strip() for t in tags_input.split(',') if t.strip()]
+            project.tags.clear()
+            for tag_name in tag_names:
+                tag, created = Tag.objects.get_or_create(
+                    name=tag_name,
+                    defaults={'slug': slugify(tag_name)}
+                )
+                project.tags.add(tag)
+
+        messages.success(request, 'Project updated successfully!')
+        return redirect('project_detail', slug=project.slug)
+
+    context = {
+        'project': project,
+    }
+    return render(request, 'workstation/edit_project.html', context)
+
+
+@login_required
+def manage_members(request, slug):
+    """Manage project members and their permissions"""
+    project = get_object_or_404(Project, slug=slug)
+
+    # Only creator and co-founders can manage members
+    if request.user != project.creator:
+        is_cofounder = ProjectMembership.objects.filter(
+            project=project,
+            user=request.user,
+            role='co-founder'
+        ).exists()
+
+        if not is_cofounder:
+            messages.error(request, "You don't have permission to manage members.")
+            return redirect('project_detail', slug=slug)
+
+    members = ProjectMembership.objects.filter(
+        project=project
+    ).select_related('user').order_by('-joined_at')
+
+    context = {
+        'project': project,
+        'members': members,
+    }
+
+    return render(request, 'workstation/manage_members.html', context)
+
+
+@login_required
+def toggle_edit_access(request, slug, membership_id):
+    """Toggle edit access for a project member"""
+    if request.method != 'POST':
+        return redirect('manage_members', slug=slug)
+
+    project = get_object_or_404(Project, slug=slug)
+    membership = get_object_or_404(ProjectMembership, id=membership_id, project=project)
+
+    # Only creator can toggle edit access
+    if request.user != project.creator:
+        messages.error(request, "Only the project creator can manage edit permissions.")
+        return redirect('manage_members', slug=slug)
+
+    # Can't change creator's permissions
+    if membership.user == project.creator:
+        messages.error(request, "Cannot change creator's permissions.")
+        return redirect('manage_members', slug=slug)
+
+    # Co-founders always have edit access
+    if membership.role == 'co-founder':
+        messages.info(request, "Co-founders always have edit access.")
+        return redirect('manage_members', slug=slug)
+
+    # Toggle the permission
+    membership.can_edit = not membership.can_edit
+    membership.save()
+
+    action = "granted" if membership.can_edit else "revoked"
+    messages.success(request, f'Edit access {action} for {membership.user.username}.')
+
+    return redirect('manage_members', slug=slug)
+
+
+@login_required
+def my_projects_list(request):
+    """List all projects created by user"""
+    projects = request.user.created_projects.all().order_by('-created_at')
+
+    context = {
+        'projects': projects,
+        'page_title': 'My Projects',
+        'is_my_projects': True,
+    }
+
+    return render(request, 'workstation/projects_list.html', context)
+
+
+@login_required
+def joined_projects_list(request):
+    """List all projects user has joined"""
+    projects = request.user.joined_projects.exclude(
+        creator=request.user
+    ).order_by('-projectmembership__joined_at')
+
+    context = {
+        'projects': projects,
+        'page_title': 'Joined Projects',
+        'is_my_projects': False,
+    }
+
+    return render(request, 'workstation/projects_list.html', context)
+
+
+@login_required
+def project_detail(request, slug):
+    """Project detail page"""
+    project = get_object_or_404(Project, slug=slug)
+    project.views_count += 1
+    project.save(update_fields=['views_count'])
+
+    comments = project.comments.filter(parent_comment=None)
+    updates = project.updates.all()[:5]
+    members = project.projectmembership_set.all()
+    is_member = request.user in project.members.all()
+    is_supporter = request.user in project.supporters.all()
+    has_join_request = JoinRequest.objects.filter(
+        user=request.user,
+        project=project,
+        status='pending'
+    ).exists()
+
+    # Check edit permission
+    can_edit = has_edit_permission(request.user, project)
+
+    # Count pending requests (for creator)
+    pending_requests_count = project.join_requests.filter(
+        status='pending').count() if request.user == project.creator else 0
+
+    context = {
+        'project': project,
+        'comments': comments,
+        'updates': updates,
+        'members': members,
+        'is_member': is_member,
+        'is_supporter': is_supporter,
+        'has_join_request': has_join_request,
+        'pending_requests_count': pending_requests_count,
+        'can_edit': can_edit,
+    }
+
+    return render(request, 'workstation/project_detail.html', context)

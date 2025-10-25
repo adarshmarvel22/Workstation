@@ -1,0 +1,621 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Team - {{ project.title }} - Workstation Hub{% endblock %}
+
+{% block content %}
+<div class="manage-members-wrapper">
+    <div class="manage-members-container">
+        <!-- Header -->
+        <div class="page-header">
+            <div class="breadcrumb">
+                <a href="{% url 'explore' %}">Projects</a>
+                <span>/</span>
+                <a href="{% url 'project_detail' project.slug %}">{{ project.title }}</a>
+                <span>/</span>
+                <span>Manage Team</span>
+            </div>
+            <h1>Manage Team Members</h1>
+            <p class="subtitle">Manage roles and permissions for {{ project.title }}</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="team-stats">
+            <div class="stat-box">
+                <i class="fas fa-users"></i>
+                <div>
+                    <h3>{{ members.count }}</h3>
+                    <p>Total Members</p>
+                </div>
+            </div>
+            <div class="stat-box">
+                <i class="fas fa-edit"></i>
+                <div>
+                    <h3>{{ members|length|add:"-1" }}</h3>
+                    <p>Members with Edit Access</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Members List -->
+        <div class="members-section">
+            <div class="section-header">
+                <h2>Team Members</h2>
+                <a href="{% url 'project_requests' project.slug %}" class="btn btn-outline">
+                    <i class="fas fa-user-plus"></i> View Join Requests
+                </a>
+            </div>
+
+            <div class="members-table-wrapper">
+                <table class="members-table">
+                    <thead>
+                        <tr>
+                            <th>Member</th>
+                            <th>Role</th>
+                            <th>Joined</th>
+                            <th>Edit Access</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for membership in members %}
+                        <tr class="member-row-table">
+                            <td>
+                                <div class="member-cell">
+                                    <div class="member-avatar-table">
+                                        {% if membership.user.profile_image %}
+                                            <img src="{{ membership.user.profile_image.url }}" alt="{{ membership.user.username }}">
+                                        {% else %}
+                                            <div class="avatar-placeholder-table">{{ membership.user.username|first|upper }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="member-info-table">
+                                        <a href="{% url 'profile' membership.user.username %}" class="member-name">
+                                            {{ membership.user.get_full_name|default:membership.user.username }}
+                                        </a>
+                                        <span class="member-username">@{{ membership.user.username }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="role-badge-table role-{{ membership.role }}">
+                                    {{ membership.get_role_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="date-text">{{ membership.joined_at|date:"M d, Y" }}</span>
+                            </td>
+                            <td>
+                                {% if membership.user == project.creator %}
+                                    <span class="access-badge access-full">
+                                        <i class="fas fa-crown"></i> Creator
+                                    </span>
+                                {% elif membership.role == 'co-founder' %}
+                                    <span class="access-badge access-full">
+                                        <i class="fas fa-check-circle"></i> Full Access
+                                    </span>
+                                {% elif membership.can_edit %}
+                                    <span class="access-badge access-granted">
+                                        <i class="fas fa-check"></i> Can Edit
+                                    </span>
+                                {% else %}
+                                    <span class="access-badge access-view">
+                                        <i class="fas fa-eye"></i> View Only
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if membership.is_active %}
+                                    <span class="status-badge status-active">Active</span>
+                                {% else %}
+                                    <span class="status-badge status-inactive">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    {% if user == project.creator and membership.user != project.creator and membership.role != 'co-founder' %}
+                                        <form method="post" action="{% url 'toggle_edit_access' project.slug membership.id %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn-icon btn-toggle" title="{% if membership.can_edit %}Revoke{% else %}Grant{% endif %} Edit Access">
+                                                {% if membership.can_edit %}
+                                                    <i class="fas fa-lock"></i>
+                                                {% else %}
+                                                    <i class="fas fa-unlock"></i>
+                                                {% endif %}
+                                            </button>
+                                        </form>
+                                    {% endif %}
+
+                                    <a href="{% url 'profile' membership.user.username %}" class="btn-icon btn-view" title="View Profile">
+                                        <i class="fas fa-user"></i>
+                                    </a>
+
+                                    {% if user == project.creator and membership.user != project.creator %}
+                                        <button class="btn-icon btn-remove" title="Remove Member" onclick="confirmRemove('{{ membership.user.username }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Permissions Guide -->
+        <div class="permissions-guide">
+            <h3><i class="fas fa-info-circle"></i> Permission Levels</h3>
+            <div class="guide-grid">
+                <div class="guide-item">
+                    <div class="guide-icon creator">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <div class="guide-content">
+                        <h4>Creator</h4>
+                        <p>Full control over the project. Can manage all members and settings.</p>
+                    </div>
+                </div>
+                <div class="guide-item">
+                    <div class="guide-icon cofounder">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="guide-content">
+                        <h4>Co-founder</h4>
+                        <p>Full edit access. Cannot be revoked. Can manage other members.</p>
+                    </div>
+                </div>
+                <div class="guide-item">
+                    <div class="guide-icon edit">
+                        <i class="fas fa-edit"></i>
+                    </div>
+                    <div class="guide-content">
+                        <h4>Edit Access</h4>
+                        <p>Can edit project details. Can be granted or revoked by creator.</p>
+                    </div>
+                </div>
+                <div class="guide-item">
+                    <div class="guide-icon view">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <div class="guide-content">
+                        <h4>View Only</h4>
+                        <p>Can view project details and participate in discussions.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.manage-members-wrapper {
+    min-height: 100vh;
+    background: var(--bg-primary);
+    padding: 2rem 0;
+}
+
+.manage-members-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.breadcrumb {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.breadcrumb a {
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    color: var(--accent-primary);
+}
+
+.breadcrumb span {
+    margin: 0 0.5rem;
+}
+
+.page-header h1 {
+    font-size: 32px;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 16px;
+}
+
+.team-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-box {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-box i {
+    font-size: 32px;
+    color: var(--accent-primary);
+}
+
+.stat-box h3 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.stat-box p {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.members-section {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.members-table-wrapper {
+    overflow-x: auto;
+}
+
+.members-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.members-table thead {
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+}
+
+.members-table th {
+    padding: 1rem;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.members-table tbody tr {
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.2s;
+}
+
+.members-table tbody tr:hover {
+    background: var(--bg-tertiary);
+}
+
+.members-table td {
+    padding: 1rem;
+    font-size: 14px;
+}
+
+.member-cell {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.member-avatar-table {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.member-avatar-table img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder-table {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-primary);
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.member-info-table {
+    display: flex;
+    flex-direction: column;
+}
+
+.member-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: 15px;
+}
+
+.member-name:hover {
+    color: var(--accent-primary);
+}
+
+.member-username {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.role-badge-table {
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.role-creator {
+    background: rgba(234, 179, 8, 0.1);
+    color: #eab308;
+}
+
+.role-co-founder {
+    background: rgba(147, 51, 234, 0.1);
+    color: #9333ea;
+}
+
+.role-member {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.role-contributor {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--accent-primary);
+}
+
+.role-mentor {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.role-investor {
+    background: rgba(236, 72, 153, 0.1);
+    color: #ec4899;
+}
+
+.date-text {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.access-badge {
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.access-full {
+    background: rgba(234, 179, 8, 0.1);
+    color: #eab308;
+}
+
+.access-granted {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--accent-primary);
+}
+
+.access-view {
+    background: rgba(107, 114, 128, 0.1);
+    color: #6b7280;
+}
+
+.status-badge {
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-active {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--accent-primary);
+}
+
+.status-inactive {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-icon:hover {
+    background: var(--bg-card);
+}
+
+.btn-toggle:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.btn-view:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+}
+
+.btn-remove:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.permissions-guide {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+.permissions-guide h3 {
+    font-size: 18px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.permissions-guide h3 i {
+    color: var(--accent-primary);
+}
+
+.guide-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.guide-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1.25rem;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+}
+
+.guide-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.guide-icon.creator {
+    background: rgba(234, 179, 8, 0.1);
+    color: #eab308;
+}
+
+.guide-icon.cofounder {
+    background: rgba(147, 51, 234, 0.1);
+    color: #9333ea;
+}
+
+.guide-icon.edit {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--accent-primary);
+}
+
+.guide-icon.view {
+    background: rgba(107, 114, 128, 0.1);
+    color: #6b7280;
+}
+
+.guide-content h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.guide-content p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+@media (max-width: 968px) {
+    .members-table-wrapper {
+        overflow-x: scroll;
+    }
+
+    .members-table {
+        min-width: 800px;
+    }
+
+    .guide-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .manage-members-container {
+        padding: 0 1rem;
+    }
+
+    .team-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+}
+</style>
+
+<script>
+function confirmRemove(username) {
+    if (confirm(`Are you sure you want to remove ${username} from this project?`)) {
+        // Implement remove member functionality
+        alert('Remove member functionality to be implemented');
+    }
+}
+</script>
+{% endblock %}

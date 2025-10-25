@@ -145,6 +145,7 @@ class ProjectMembership(models.Model):
     role = models.CharField(max_length=20, choices=ROLES, default='member')
     joined_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
+    can_edit = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'project_memberships'

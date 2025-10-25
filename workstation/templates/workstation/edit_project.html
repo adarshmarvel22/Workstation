@@ -3,535 +3,456 @@
 
 {% block title %}Edit {{ project.title }} - Workstation Hub{% endblock %}
 
-{% block extra_css %}
-<style>
-/* Reuse create project styles with edit-specific additions */
-.edit-project-header {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.edit-title-section h1 {
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-}
-
-.edit-title-section p {
-    font-size: 14px;
-    color: var(--text-secondary);
-}
-
-.edit-actions {
-    display: flex;
-    gap: 1rem;
-}
-
-.btn-danger {
-    background: #ef4444;
-    color: white;
-}
-
-.btn-danger:hover {
-    background: #dc2626;
-}
-
-.edit-form-container {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 0 2rem 2rem;
-}
-
-.edit-form-wrapper {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    padding: 3rem;
-}
-
-.form-section {
-    margin-bottom: 2rem;
-}
-
-.form-section-title {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 1.5rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.form-section-title i {
-    color: var(--accent-primary);
-}
-
-.current-image {
-    position: relative;
-    width: 100%;
-    height: 250px;
-    border-radius: 12px;
-    overflow: hidden;
-    margin-bottom: 1rem;
-}
-
-.current-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.image-actions {
-    position: absolute;
-    bottom: 1rem;
-    right: 1rem;
-    display: flex;
-    gap: 0.5rem;
-}
-
-.image-action-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(10px);
-    border: none;
-    color: white;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-}
-
-.image-action-btn:hover {
-    background: rgba(0, 0, 0, 0.9);
-}
-
-.status-indicator {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.status-indicator.open {
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--accent-primary);
-}
-
-.status-indicator.closed {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-}
-
-.status-indicator i {
-    font-size: 8px;
-}
-
-.project-stats-edit {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
-}
-
-.stat-card-edit {
-    background: var(--bg-tertiary);
-    padding: 1.25rem;
-    border-radius: 10px;
-    text-align: center;
-}
-
-.stat-value-edit {
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--accent-primary);
-    margin-bottom: 0.25rem;
-}
-
-.stat-label-edit {
-    font-size: 13px;
-    color: var(--text-secondary);
-}
-
-.delete-section {
-    background: rgba(239, 68, 68, 0.05);
-    border: 1px solid rgba(239, 68, 68, 0.2);
-    border-radius: 12px;
-    padding: 2rem;
-    margin-top: 3rem;
-}
-
-.delete-section h3 {
-    color: #ef4444;
-    margin-bottom: 0.75rem;
-}
-
-.delete-section p {
-    color: var(--text-secondary);
-    margin-bottom: 1.5rem;
-}
-
-/* Mobile Responsive */
-@media (max-width: 768px) {
-    .edit-project-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-        padding: 1rem;
-    }
-
-    .edit-actions {
-        width: 100%;
-        flex-direction: column;
-    }
-
-    .edit-actions .btn {
-        width: 100%;
-    }
-
-    .edit-form-container {
-        padding: 0 1rem 1rem;
-    }
-
-    .edit-form-wrapper {
-        padding: 1.5rem;
-    }
-
-    .project-stats-edit {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .form-section-title {
-        font-size: 16px;
-    }
-
-    .current-image {
-        height: 180px;
-    }
-}
-
-@media (max-width: 480px) {
-    .project-stats-edit {
-        grid-template-columns: 1fr;
-    }
-}
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="edit-project-header">
-    <div class="edit-title-section">
-        <h1>Edit Project</h1>
-        <p>Update your project information and settings</p>
-    </div>
-    <div class="edit-actions">
-        <a href="{% url 'project_detail' project.slug %}" class="btn btn-outline">
-            <i class="fas fa-times"></i> Cancel
-        </a>
-        <button type="button" class="btn btn-primary" onclick="document.getElementById('editForm').requestSubmit()">
-            <i class="fas fa-save"></i> Save Changes
-        </button>
-    </div>
-</div>
-
-<div class="edit-form-container">
-    <!-- Project Stats -->
-    <div class="project-stats-edit">
-        <div class="stat-card-edit">
-            <div class="stat-value-edit">{{ project.views_count }}</div>
-            <div class="stat-label-edit">Views</div>
-        </div>
-        <div class="stat-card-edit">
-            <div class="stat-value-edit">{{ project.members.count }}</div>
-            <div class="stat-label-edit">Members</div>
-        </div>
-        <div class="stat-card-edit">
-            <div class="stat-value-edit">{{ project.supporters.count }}</div>
-            <div class="stat-label-edit">Supporters</div>
-        </div>
-        <div class="stat-card-edit">
-            <div class="stat-value-edit">
-                <span class="status-indicator {{ project.status }}">
-                    <i class="fas fa-circle"></i>
-                    {{ project.get_status_display }}
-                </span>
+<div class="edit-project-wrapper">
+    <div class="edit-project-container">
+        <!-- Header -->
+        <div class="page-header">
+            <div class="breadcrumb">
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                <span>/</span>
+                <a href="{% url 'project_detail' project.slug %}">{{ project.title }}</a>
+                <span>/</span>
+                <span>Edit</span>
             </div>
-            <div class="stat-label-edit">Status</div>
+            <h1>Edit Project</h1>
+            <p class="subtitle">Update your project details and settings</p>
         </div>
-    </div>
 
-    <div class="edit-form-wrapper">
-        <form method="post" enctype="multipart/form-data" id="editForm">
+        <!-- Form -->
+        <form method="post" enctype="multipart/form-data" class="edit-form">
             {% csrf_token %}
 
-            {% if form.errors %}
-            <div class="alert alert-error" style="margin-bottom: 2rem; padding: 1rem; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; color: #ef4444;">
-                <strong>Please correct the following errors:</strong>
-                <ul style="margin: 0.5rem 0 0 1.5rem;">
-                    {% for field, errors in form.errors.items %}
-                        {% for error in errors %}
-                            <li>{{ field }}: {{ error }}</li>
-                        {% endfor %}
-                    {% endfor %}
-                </ul>
-            </div>
-            {% endif %}
+            <div class="form-grid">
+                <!-- Main Content -->
+                <div class="form-main">
+                    <!-- Basic Info Card -->
+                    <div class="form-card">
+                        <h2><i class="fas fa-info-circle"></i> Basic Information</h2>
 
-            <!-- Basic Information -->
-            <div class="form-section">
-                <h3 class="form-section-title">
-                    <i class="fas fa-info-circle"></i>
-                    Basic Information
-                </h3>
-
-                <div class="form-section">
-                    <label class="form-label">Project Title <span class="required">*</span></label>
-                    {{ form.title }}
-                </div>
-
-                <div class="form-section">
-                    <label class="form-label">Short Description <span class="required">*</span></label>
-                    {{ form.short_description }}
-                </div>
-
-                <div class="form-row">
-                    <div class="form-section">
-                        <label class="form-label">Project Type</label>
-                        {{ form.project_type }}
-                    </div>
-                    <div class="form-section">
-                        <label class="form-label">Current Stage</label>
-                        {{ form.stage }}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Description -->
-            <div class="form-section">
-                <h3 class="form-section-title">
-                    <i class="fas fa-align-left"></i>
-                    Project Description
-                </h3>
-                {{ form.description }}
-                <span class="form-hint">Describe your project in detail. What problem does it solve? What makes it unique?</span>
-            </div>
-
-            <!-- Settings -->
-            <div class="form-section">
-                <h3 class="form-section-title">
-                    <i class="fas fa-cog"></i>
-                    Project Settings
-                </h3>
-
-                <div class="form-row">
-                    <div class="form-section">
-                        <label class="form-label">Status</label>
-                        {{ form.status }}
-                    </div>
-                    <div class="form-section">
-                        <label class="form-label">Looking For</label>
-                        {{ form.collaboration_needed }}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Cover Image -->
-            <div class="form-section">
-                <h3 class="form-section-title">
-                    <i class="fas fa-image"></i>
-                    Cover Image
-                </h3>
-
-                {% if project.cover_image %}
-                <div class="current-image">
-                    <img src="{{ project.cover_image.url }}" alt="{{ project.title }}" id="currentImage">
-                    <div class="image-actions">
-                        <button type="button" class="image-action-btn" onclick="document.getElementById('id_cover_image').click()">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button type="button" class="image-action-btn" onclick="removeImage()">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-                {% endif %}
-
-                <div class="image-upload-area" id="imageUpload" style="{% if project.cover_image %}display: none;{% endif %}">
-                    <div class="upload-content">
-                        <div class="upload-icon">
-                            <i class="fas fa-cloud-upload-alt"></i>
+                        <div class="form-group">
+                            <label for="title">Project Title *</label>
+                            <input type="text" id="title" name="title" value="{{ project.title }}" required maxlength="300">
+                            <span class="form-help">Choose a clear, descriptive title</span>
                         </div>
-                        <p class="upload-text">
-                            <strong>Click to upload</strong> or drag and drop<br>
-                            PNG, JPG or GIF (Max 5MB)
-                        </p>
-                    </div>
-                    <img id="imagePreview" class="image-preview" alt="Preview">
-                </div>
-                {{ form.cover_image }}
-            </div>
 
-            <!-- Tags -->
-            <div class="form-section">
-                <h3 class="form-section-title">
-                    <i class="fas fa-tags"></i>
-                    Tags
-                </h3>
-                <div class="tags-grid">
-                    {% for tag in form.tags %}
-                    <div class="tag-checkbox">
-                        {{ tag.tag }}
-                        <label for="{{ tag.id_for_label }}">
-                            <i class="fas fa-tag"></i>
-                            {{ tag.choice_label }}
-                        </label>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
+                        <div class="form-group">
+                            <label for="short_description">Short Description</label>
+                            <input type="text" id="short_description" name="short_description" value="{{ project.short_description }}" maxlength="500">
+                            <span class="form-help">Brief one-liner about your project</span>
+                        </div>
 
-            <!-- Danger Zone -->
-            <div class="delete-section">
-                <h3><i class="fas fa-exclamation-triangle"></i> Danger Zone</h3>
-                <p>Once you delete a project, there is no going back. Please be certain.</p>
-                <button type="button" class="btn btn-danger" onclick="confirmDelete()">
-                    <i class="fas fa-trash"></i> Delete Project
-                </button>
+                        <div class="form-group">
+                            <label for="description">Full Description *</label>
+                            <textarea id="description" name="description" rows="8" required>{{ project.description }}</textarea>
+                            <span class="form-help">Detailed description of your project, goals, and vision</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tags">Tags</label>
+                            <input type="text" id="tags" name="tags" value="{% for tag in project.tags.all %}{{ tag.name }}{% if not forloop.last %}, {% endif %}{% endfor %}" placeholder="e.g., AI, Web Development, Mobile">
+                            <span class="form-help">Comma-separated tags to help others find your project</span>
+                        </div>
+                    </div>
+
+                    <!-- Cover Image Card -->
+                    <div class="form-card">
+                        <h2><i class="fas fa-image"></i> Cover Image</h2>
+
+                        <div class="form-group">
+                            {% if project.cover_image %}
+                            <div class="current-image">
+                                <img src="{{ project.cover_image.url }}" alt="{{ project.title }}">
+                                <p class="form-help">Current cover image</p>
+                            </div>
+                            {% endif %}
+
+                            <label for="cover_image" class="file-input-label">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <span>Choose New Cover Image</span>
+                                <input type="file" id="cover_image" name="cover_image" accept="image/*">
+                            </label>
+                            <span class="form-help">Recommended: 1200x600px, max 5MB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="form-sidebar">
+                    <!-- Project Settings Card -->
+                    <div class="form-card">
+                        <h3><i class="fas fa-cog"></i> Settings</h3>
+
+                        <div class="form-group">
+                            <label for="project_type">Type</label>
+                            <select id="project_type" name="project_type">
+                                <option value="project" {% if project.project_type == 'project' %}selected{% endif %}>Project</option>
+                                <option value="idea" {% if project.project_type == 'idea' %}selected{% endif %}>Idea</option>
+                                <option value="venture" {% if project.project_type == 'venture' %}selected{% endif %}>Venture</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="stage">Stage</label>
+                            <select id="stage" name="stage">
+                                <option value="idea" {% if project.stage == 'idea' %}selected{% endif %}>Idea</option>
+                                <option value="prototype" {% if project.stage == 'prototype' %}selected{% endif %}>Prototype</option>
+                                <option value="mvp" {% if project.stage == 'mvp' %}selected{% endif %}>MVP</option>
+                                <option value="growth" {% if project.stage == 'growth' %}selected{% endif %}>Growth</option>
+                                <option value="mature" {% if project.stage == 'mature' %}selected{% endif %}>Mature</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="status">Status</label>
+                            <select id="status" name="status">
+                                <option value="open" {% if project.status == 'open' %}selected{% endif %}>Open</option>
+                                <option value="closed" {% if project.status == 'closed' %}selected{% endif %}>Closed</option>
+                                <option value="paused" {% if project.status == 'paused' %}selected{% endif %}>Paused</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="collaboration_needed">Looking For</label>
+                            <select id="collaboration_needed" name="collaboration_needed">
+                                <option value="">Not looking</option>
+                                <option value="co-founders" {% if project.collaboration_needed == 'co-founders' %}selected{% endif %}>Co-founders</option>
+                                <option value="mentors" {% if project.collaboration_needed == 'mentors' %}selected{% endif %}>Mentors</option>
+                                <option value="investors" {% if project.collaboration_needed == 'investors' %}selected{% endif %}>Investors</option>
+                                <option value="contributors" {% if project.collaboration_needed == 'contributors' %}selected{% endif %}>Contributors</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Actions Card -->
+                    <div class="form-card">
+                        <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+                        <div class="action-buttons">
+                            <button type="submit" class="btn btn-primary btn-full">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                            <a href="{% url 'project_detail' project.slug %}" class="btn btn-outline btn-full">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <a href="{% url 'manage_members' project.slug %}" class="btn btn-outline btn-full">
+                                <i class="fas fa-users"></i> Manage Team
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Project Info Card -->
+                    <div class="form-card">
+                        <h3><i class="fas fa-info"></i> Info</h3>
+                        <div class="info-items">
+                            <div class="info-item-small">
+                                <span class="label">Created</span>
+                                <span class="value">{{ project.created_at|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="info-item-small">
+                                <span class="label">Last Updated</span>
+                                <span class="value">{{ project.updated_at|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="info-item-small">
+                                <span class="label">Views</span>
+                                <span class="value">{{ project.views_count }}</span>
+                            </div>
+                            <div class="info-item-small">
+                                <span class="label">Members</span>
+                                <span class="value">{{ project.members.count }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div id="deleteModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Delete Project?</h2>
-            <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
-        </div>
-        <div class="modal-body" style="padding: 2rem;">
-            <p style="margin-bottom: 1rem;">Are you sure you want to delete <strong>{{ project.title }}</strong>?</p>
-            <p style="color: var(--text-secondary); margin-bottom: 2rem;">This action cannot be undone. All project data, members, and updates will be permanently deleted.</p>
-            <div style="display: flex; gap: 1rem;">
-                <button class="btn btn-outline" onclick="closeDeleteModal()" style="flex: 1;">Cancel</button>
-                <form method="post" action="{% url 'project_detail' project.slug %}" style="flex: 1;">
-                    {% csrf_token %}
-                    <input type="hidden" name="_method" value="DELETE">
-                    <button type="submit" class="btn btn-danger" style="width: 100%;">
-                        <i class="fas fa-trash"></i> Yes, Delete
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-// Image upload
-const imageUpload = document.getElementById('imageUpload');
-const imageInput = document.querySelector('input[name="cover_image"]');
-const imagePreview = document.getElementById('imagePreview');
-const currentImage = document.getElementById('currentImage');
-
-if (imageInput) {
-    imageInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            if (file.size > 5 * 1024 * 1024) {
-                showToast('File size must be less than 5MB', 'error');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                if (currentImage) {
-                    currentImage.src = e.target.result;
-                } else {
-                    imagePreview.src = e.target.result;
-                    imagePreview.classList.add('show');
-                    imageUpload.classList.add('has-image');
-                    imageUpload.querySelector('.upload-content').style.display = 'none';
-                }
-                showToast('Image updated', 'success');
-            };
-            reader.readAsDataURL(file);
-        }
-    });
+<style>
+.edit-project-wrapper {
+    min-height: 100vh;
+    background: var(--bg-primary);
+    padding: 2rem 0;
 }
 
-if (imageUpload) {
-    imageUpload.addEventListener('click', () => {
-        imageInput.click();
-    });
-
-    imageUpload.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        imageUpload.style.borderColor = 'var(--accent-primary)';
-    });
-
-    imageUpload.addEventListener('dragleave', () => {
-        imageUpload.style.borderColor = '';
-    });
-
-    imageUpload.addEventListener('drop', (e) => {
-        e.preventDefault();
-        imageUpload.style.borderColor = '';
-
-        const file = e.dataTransfer.files[0];
-        if (file && file.type.startsWith('image/')) {
-            imageInput.files = e.dataTransfer.files;
-            imageInput.dispatchEvent(new Event('change'));
-        }
-    });
+.edit-project-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
 }
 
-function removeImage() {
-    if (confirm('Remove current image?')) {
-        document.querySelector('.current-image').style.display = 'none';
-        imageUpload.style.display = 'block';
-        imageInput.value = '';
-        showToast('Image will be removed when you save', 'info');
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.breadcrumb {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.breadcrumb a {
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    color: var(--accent-primary);
+}
+
+.breadcrumb span {
+    margin: 0 0.5rem;
+}
+
+.page-header h1 {
+    font-size: 32px;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 16px;
+}
+
+.edit-form {
+    width: 100%;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 2rem;
+}
+
+.form-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.form-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+.form-card h2,
+.form-card h3 {
+    font-size: 18px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-card h3 {
+    font-size: 16px;
+    margin-bottom: 1rem;
+}
+
+.form-card h2 i,
+.form-card h3 i {
+    color: var(--accent-primary);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.form-group input[type="text"],
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.875rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.form-group input[type="text"]:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    background: var(--bg-secondary);
+}
+
+.form-group textarea {
+    resize: vertical;
+    font-family: inherit;
+    line-height: 1.6;
+}
+
+.form-help {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.current-image {
+    margin-bottom: 1rem;
+}
+
+.current-image img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.file-input-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: var(--bg-tertiary);
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.file-input-label:hover {
+    border-color: var(--accent-primary);
+    background: var(--bg-hover);
+}
+
+.file-input-label i {
+    font-size: 32px;
+    color: var(--accent-primary);
+    margin-bottom: 0.5rem;
+}
+
+.file-input-label span {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.file-input-label input[type="file"] {
+    display: none;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.info-items {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.info-item-small {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+}
+
+.info-item-small .label {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.info-item-small .value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+@media (max-width: 1200px) {
+    .form-grid {
+        grid-template-columns: 1fr;
     }
 }
 
-function confirmDelete() {
-    document.getElementById('deleteModal').classList.add('show');
+@media (max-width: 768px) {
+    .edit-project-container {
+        padding: 0 1rem;
+    }
+
+    .form-card {
+        padding: 1.5rem;
+    }
+
+    .page-header h1 {
+        font-size: 24px;
+    }
 }
+</style>
 
-function closeDeleteModal() {
-    document.getElementById('deleteModal').classList.remove('show');
-}
-
-// Auto-resize textarea
-document.querySelectorAll('textarea').forEach(textarea => {
-    textarea.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = (this.scrollHeight) + 'px';
-    });
-
-    // Initial resize
-    textarea.style.height = 'auto';
-    textarea.style.height = (textarea.scrollHeight) + 'px';
+<script>
+// Preview image before upload
+document.getElementById('cover_image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const currentImage = document.querySelector('.current-image');
+            if (currentImage) {
+                currentImage.querySelector('img').src = e.target.result;
+            } else {
+                const preview = document.createElement('div');
+                preview.className = 'current-image';
+                preview.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview">
+                    <p class="form-help">New cover image preview</p>
+                `;
+                document.querySelector('.file-input-label').before(preview);
+            }
+        };
+        reader.readAsDataURL(file);
+    }
 });
 
-// Form submission
-document.getElementById('editForm').addEventListener('submit', function(e) {
-    const submitBtn = document.querySelector('.btn-primary');
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+// Warn before leaving if form is modified
+let formModified = false;
+document.querySelectorAll('.edit-form input, .edit-form textarea, .edit-form select').forEach(input => {
+    input.addEventListener('change', () => {
+        formModified = true;
+    });
+});
+
+window.addEventListener('beforeunload', (e) => {
+    if (formModified) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+
+document.querySelector('.edit-form').addEventListener('submit', () => {
+    formModified = false;
 });
 </script>
 {% endblock %}

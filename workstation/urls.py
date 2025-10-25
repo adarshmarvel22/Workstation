@@ -23,6 +23,13 @@ urlpatterns = [
     path('projects/<slug:slug>/requests/', views.project_requests, name='project_requests'),
     path('projects/<slug:slug>/requests/<int:request_id>/respond/', views.respond_to_request, name='respond_to_request'),
 
+    path('projects/<slug:slug>/members/', views.manage_members, name='manage_members'),
+    path('projects/<slug:slug>/members/<int:membership_id>/toggle-edit/', views.toggle_edit_access, name='toggle_edit_access'),
+
+    # Dashboard - My Projects List
+    path('dashboard/my-projects/', views.my_projects_list, name='my_projects_list'),
+    path('dashboard/joined-projects/', views.joined_projects_list, name='joined_projects_list'),
+
     # User profiles
     path('users/<str:username>/', views.profile, name='profile'),
     path('profile/edit/', views.edit_profile, name='edit_profile'),

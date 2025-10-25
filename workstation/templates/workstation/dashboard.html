@@ -573,7 +573,7 @@
 
     <!-- Stats Overview -->
     <div class="stats-overview">
-        <div class="stat-card" onclick="location.href='{% url 'profile' user.username %}'">
+        <div class="stat-card" onclick="location.href='{% url 'my_projects_list' %}'">
             <div class="stat-card-header">
                 <div class="stat-icon projects">
                     <i class="fas fa-project-diagram"></i>
@@ -583,7 +583,7 @@
             <div class="stat-label">Projects Created</div>
         </div>
 
-        <div class="stat-card" onclick="location.href='{% url 'profile' user.username %}'">
+        <div class="stat-card" onclick="location.href='{% url 'joined_projects_list' %}'">
             <div class="stat-card-header">
                 <div class="stat-icon joined">
                     <i class="fas fa-users"></i>
@@ -591,42 +591,6 @@
             </div>
             <div class="stat-value">{{ stats.projects_joined }}</div>
             <div class="stat-label">Projects Joined</div>
-        </div>
-
-        <div class="stat-card" onclick="location.href='{% url 'profile' user.username %}'">
-            <div class="stat-card-header">
-                <div class="stat-icon supported">
-                    <i class="fas fa-heart"></i>
-                </div>
-            </div>
-            <div class="stat-value">{{ stats.projects_supported }}</div>
-            <div class="stat-label">Projects Supported</div>
-        </div>
-
-        <div class="stat-card" onclick="location.href='{% url 'messages' %}'">
-            <div class="stat-card-header">
-                <div class="stat-icon messages">
-                    <i class="fas fa-envelope"></i>
-                </div>
-                {% if stats.unread_messages > 0 %}
-                <span class="stat-badge">{{ stats.unread_messages }}</span>
-                {% endif %}
-            </div>
-            <div class="stat-value">{{ stats.unread_messages }}</div>
-            <div class="stat-label">Unread Messages</div>
-        </div>
-
-        <div class="stat-card" onclick="location.href='{% url 'notifications' %}'">
-            <div class="stat-card-header">
-                <div class="stat-icon notifications">
-                    <i class="fas fa-bell"></i>
-                </div>
-                {% if stats.unread_notifications > 0 %}
-                <span class="stat-badge">{{ stats.unread_notifications }}</span>
-                {% endif %}
-            </div>
-            <div class="stat-value">{{ stats.unread_notifications }}</div>
-            <div class="stat-label">New Notifications</div>
         </div>
     </div>
 
@@ -638,7 +602,7 @@
             <div class="dashboard-section">
                 <div class="section-header">
                     <h2>My Projects</h2>
-                    <a href="{% url 'profile' user.username %}" class="section-link">
+                    <a href="{% url 'my_projects_list' %}" class="section-link">
                         View all <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
@@ -693,7 +657,7 @@
             <div class="dashboard-section">
                 <div class="section-header">
                     <h2>Joined Projects</h2>
-                    <a href="{% url 'profile' user.username %}" class="section-link">
+                    <a href="{% url 'joined_projects_list' %}" class="section-link">
                         View all <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
