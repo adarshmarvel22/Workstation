@@ -10,7 +10,8 @@
         <div class="conversations-panel">
             <div class="panel-header">
                 <h2>Messages</h2>
-                <button class="btn btn-sm btn-primary" onclick="location.href='{% url 'explore' %}'">
+                <button class="btn btn-sm btn-primary ws-mb-msg-btn"
+                        onclick="location.href='{% url 'explore' %}'">
                     <i class="fas fa-pen"></i> New
                 </button>
             </div>
@@ -553,9 +554,15 @@
 
 /* Mobile Responsive */
 @media (max-width: 968px) {
+    .ws-mb-msg-btn{
+        position: fixed;
+        right: 47px;
+    }
+
     .messages-container {
         padding: 0;
         height: 100vh;
+        max-width: 90%;
     }
 
     .messages-wrapper {
