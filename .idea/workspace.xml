@@ -1,31 +1,108 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="441625af-b792-465f-8f67-42aae97c6eee" name="Changes" comment="" />
+    <list default="true" id="441625af-b792-465f-8f67-42aae97c6eee" name="Changes" comment="[IMP] Update Settings">
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="ai_workers" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 6
-}]]></component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;adarshmarvel22&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/adarshmarvel22/Workstation.git&quot;,
+    &quot;accountId&quot;: &quot;21592563-c5f8-4295-8f7a-d318402dd008&quot;
+  },
+  &quot;recentNewPullRequestHead&quot;: {
+    &quot;server&quot;: {
+      &quot;useHttp&quot;: false,
+      &quot;host&quot;: &quot;github.com&quot;,
+      &quot;port&quot;: null,
+      &quot;suffix&quot;: null
+    },
+    &quot;owner&quot;: &quot;adarshmarvel22&quot;,
+    &quot;repository&quot;: &quot;Workstation&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
   <component name="ProjectId" id="33xzaCi8E4BMqdolZVkchXAwL0c" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "master"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.Workstation (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.Workstation.executor&quot;: &quot;Run&quot;,
+    &quot;Python.WorkstationV1.executor&quot;: &quot;Run&quot;,
+    &quot;Python.manage.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dev&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
-}]]></component>
+}</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\adars\PycharmProjects\WorkstationV1\workstation\templates" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="WorkstationV1" type="PythonConfigurationType" factoryName="Python">
+      <module name="WorkstationV1" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="SDK_NAME" value="Python 3.11" />
+      <option name="WORKING_DIRECTORY" value="C:\Users\adars\PycharmProjects\WorkstationV1" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/manage.py" />
+      <option name="PARAMETERS" value="runserver" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -41,6 +118,331 @@
       <option name="presentableId" value="Default" />
       <updated>1760273574168</updated>
     </task>
+    <task id="LOCAL-00001" summary="add files">
+      <option name="closed" value="true" />
+      <created>1760290393943</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1760290393943</updated>
+    </task>
+    <task id="LOCAL-00002" summary="add home ui">
+      <option name="closed" value="true" />
+      <created>1760291618362</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1760291618362</updated>
+    </task>
+    <task id="LOCAL-00003" summary="add project ui and gmail login setup">
+      <option name="closed" value="true" />
+      <created>1760467827227</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1760467827227</updated>
+    </task>
+    <task id="LOCAL-00004" summary="[IMP] Add Project desc">
+      <option name="closed" value="true" />
+      <created>1760468388430</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1760468388430</updated>
+    </task>
+    <task id="LOCAL-00005" summary="[IMP] Launch Year">
+      <option name="closed" value="true" />
+      <created>1760804586129</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1760804586129</updated>
+    </task>
+    <task id="LOCAL-00006" summary="[IMP] Profile and Project pages, Mobile responsiveness">
+      <option name="closed" value="true" />
+      <created>1760808668419</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1760808668419</updated>
+    </task>
+    <task id="LOCAL-00007" summary="[IMP] Add dashboard, CSS issue, allowed_hosts temporarily set to all">
+      <option name="closed" value="true" />
+      <created>1760888495671</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1760888495671</updated>
+    </task>
+    <task id="LOCAL-00008" summary="[FIX] Fix delete_message">
+      <option name="closed" value="true" />
+      <created>1760888840493</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1760888840493</updated>
+    </task>
+    <task id="LOCAL-00009" summary="[BUILD] Update for Internal Testing">
+      <option name="closed" value="true" />
+      <created>1760889876027</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1760889876027</updated>
+    </task>
+    <task id="LOCAL-00010" summary="[BUILD] Add initial.py for Internal Testing">
+      <option name="closed" value="true" />
+      <created>1760894814264</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1760894814264</updated>
+    </task>
+    <task id="LOCAL-00011" summary="[IMP, FIX] Messaging feature, UI improvements, view logic fixes">
+      <option name="closed" value="true" />
+      <created>1760939957524</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1760939957524</updated>
+    </task>
+    <task id="LOCAL-00012" summary="[FIX] CSS webkit clamp issue">
+      <option name="closed" value="true" />
+      <created>1760941699037</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1760941699037</updated>
+    </task>
+    <task id="LOCAL-00013" summary="[FIX] CSS input tag issue">
+      <option name="closed" value="true" />
+      <created>1760942413490</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1760942413490</updated>
+    </task>
+    <task id="LOCAL-00014" summary="[IMP] AI Workers added">
+      <option name="closed" value="true" />
+      <created>1760945130141</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1760945130141</updated>
+    </task>
+    <task id="LOCAL-00015" summary="[IMP, FIX] sign in/up with gmail and signup fix">
+      <option name="closed" value="true" />
+      <created>1761155145087</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1761155145087</updated>
+    </task>
+    <task id="LOCAL-00016" summary="[IMP, FIX] sign in/up with gmail and signup fix">
+      <option name="closed" value="true" />
+      <created>1761155318821</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1761155318821</updated>
+    </task>
+    <task id="LOCAL-00017" summary="[IMP, FIX] sign in/up with gmail in login page">
+      <option name="closed" value="true" />
+      <created>1761330028007</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1761330028007</updated>
+    </task>
+    <task id="LOCAL-00018" summary="[FIX] Mobile UI Fix">
+      <option name="closed" value="true" />
+      <created>1761330986007</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1761330986007</updated>
+    </task>
+    <task id="LOCAL-00019" summary="[IMP] Add Comment Post in Projects">
+      <option name="closed" value="true" />
+      <created>1761332462800</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1761332462800</updated>
+    </task>
+    <task id="LOCAL-00020" summary="[IMP] Add Manage and join requests functionality">
+      <option name="closed" value="true" />
+      <created>1761334011929</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1761334011929</updated>
+    </task>
+    <task id="LOCAL-00021" summary="[IMP] Remove comment">
+      <option name="closed" value="true" />
+      <created>1761334231775</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1761334231775</updated>
+    </task>
+    <task id="LOCAL-00022" summary="[FIX] Fix height/UI">
+      <option name="closed" value="true" />
+      <created>1761335314646</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1761335314646</updated>
+    </task>
+    <task id="LOCAL-00023" summary="[FIX] Fix UI">
+      <option name="closed" value="true" />
+      <created>1761335832183</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1761335832183</updated>
+    </task>
+    <task id="LOCAL-00024" summary="[FIX] Fix UI">
+      <option name="closed" value="true" />
+      <created>1761400328203</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1761400328203</updated>
+    </task>
+    <task id="LOCAL-00025" summary="[FIX] Fix UI">
+      <option name="closed" value="true" />
+      <created>1761400441393</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1761400441394</updated>
+    </task>
+    <task id="LOCAL-00026" summary="[FIX] Fix UI">
+      <option name="closed" value="true" />
+      <created>1761402481828</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1761402481828</updated>
+    </task>
+    <task id="LOCAL-00027" summary="[FIX] Dashboard , Edit Project, Manage Team and Requests">
+      <option name="closed" value="true" />
+      <created>1761407448390</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1761407448390</updated>
+    </task>
+    <task id="LOCAL-00028" summary="[IMP] Update Bot Logo">
+      <option name="closed" value="true" />
+      <created>1761409100441</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1761409100441</updated>
+    </task>
+    <task id="LOCAL-00029" summary="[FIX] UI Fix">
+      <option name="closed" value="true" />
+      <created>1761413178921</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1761413178921</updated>
+    </task>
+    <task id="LOCAL-00030" summary="[IMP] New Pages and Improvements">
+      <option name="closed" value="true" />
+      <created>1761417737634</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1761417737634</updated>
+    </task>
+    <task id="LOCAL-00031" summary="[IMP] New Pages and Improvements- Posts, comments, likes, Memescam via admin for now">
+      <option name="closed" value="true" />
+      <created>1761483246712</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1761483246712</updated>
+    </task>
+    <task id="LOCAL-00032" summary="[IMP] Update Settings">
+      <option name="closed" value="true" />
+      <created>1761483595191</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1761483595191</updated>
+    </task>
+    <task id="LOCAL-00033" summary="[IMP] Update Settings">
+      <option name="closed" value="true" />
+      <created>1761483754311</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1761483754311</updated>
+    </task>
+    <option name="localTasksCounter" value="34" />
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="[IMP] Add Project desc" />
+    <MESSAGE value="[IMP] Launch Year" />
+    <MESSAGE value="[IMP] Profile and Project pages, Mobile responsiveness" />
+    <MESSAGE value="[IMP] Add dashboard, CSS issue, allowed_hosts temporarily set to all" />
+    <MESSAGE value="[FIX] Fix delete_message" />
+    <MESSAGE value="[BUILD] Update for Internal Testing" />
+    <MESSAGE value="[BUILD] Add initial.py for Internal Testing" />
+    <MESSAGE value="[IMP, FIX] Messaging feature, UI improvements, view logic fixes" />
+    <MESSAGE value="[FIX] CSS webkit clamp issue" />
+    <MESSAGE value="[FIX] CSS input tag issue" />
+    <MESSAGE value="[IMP] AI Workers added" />
+    <MESSAGE value="[IMP, FIX] sign in/up with gmail and signup fix" />
+    <MESSAGE value="[IMP, FIX] sign in/up with gmail in login page" />
+    <MESSAGE value="[FIX] Mobile UI Fix" />
+    <MESSAGE value="[IMP] Add Comment Post in Projects" />
+    <MESSAGE value="[IMP] Add Manage and join requests functionality" />
+    <MESSAGE value="[IMP] Remove comment" />
+    <MESSAGE value="[FIX] Fix height/UI" />
+    <MESSAGE value="[FIX] Fix UI" />
+    <MESSAGE value="[FIX] Dashboard , Edit Project, Manage Team and Requests" />
+    <MESSAGE value="[IMP] Update Bot Logo" />
+    <MESSAGE value="[FIX] UI Fix" />
+    <MESSAGE value="[IMP] New Pages and Improvements" />
+    <MESSAGE value="[IMP] New Pages and Improvements- Posts, comments, likes, Memescam via admin for now" />
+    <MESSAGE value="[IMP] Update Settings" />
+    <option name="LAST_COMMIT_MESSAGE" value="[IMP] Update Settings" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/workstation/models.py</url>
+          <line>235</line>
+          <option name="timeStamp" value="9" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/workstation/signals.py</url>
+          <line>64</line>
+          <option name="timeStamp" value="28" />
+        </line-breakpoint>
+        <line-breakpoint suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/workstation/views.py</url>
+          <line>643</line>
+          <option name="timeStamp" value="29" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
