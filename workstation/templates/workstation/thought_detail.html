@@ -1,0 +1,667 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Thought - Workstation Hub{% endblock %}
+
+{% block content %}
+<div class="thought-detail-wrapper">
+    <div class="thought-detail-container">
+        <!-- Back Button -->
+        <div class="back-navigation">
+            <a href="{% url 'thoughts_feed' %}" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Back to Thoughts
+            </a>
+        </div>
+
+        <!-- Main Thought -->
+        <div class="thought-detail-card">
+            <div class="thought-header-detail">
+                <div class="user-info-detail">
+                    <div class="user-avatar-detail">
+                        {% if thought.user.profile_image %}
+                            <img src="{{ thought.user.profile_image.url }}" alt="{{ thought.user.username }}">
+                        {% else %}
+                            <div class="avatar-placeholder-detail">{{ thought.user.username|first|upper }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="user-details-detail">
+                        <a href="{% url 'profile' thought.user.username %}" class="user-name-detail">
+                            {{ thought.user.get_full_name|default:thought.user.username }}
+                        </a>
+                        <span class="user-meta-detail">
+                            @{{ thought.user.username }}
+                        </span>
+                    </div>
+                </div>
+
+                {% if thought.user == user %}
+                <form method="post" action="{% url 'delete_thought' thought.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-delete-detail" onclick="return confirm('Delete this thought?')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+
+            {% if thought.is_repost %}
+            <div class="repost-indicator-detail">
+                <i class="fas fa-retweet"></i>
+                <span>{{ thought.user.username }} reposted</span>
+            </div>
+            {% endif %}
+
+            <div class="thought-content-detail">
+                <p>{{ thought.content|linebreaks }}</p>
+
+                {% if thought.image %}
+                <img src="{{ thought.image.url }}" alt="Thought image" class="thought-image-detail">
+                {% endif %}
+
+                {% if thought.tags.all %}
+                <div class="thought-tags-detail">
+                    {% for tag in thought.tags.all %}
+                    <a href="{% url 'explore' %}?tags={{ tag.slug }}" class="thought-tag-detail">#{{ tag.name }}</a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="thought-timestamp">
+                {{ thought.created_at|date:"g:i A · M d, Y" }}
+            </div>
+
+            <div class="thought-stats-detail">
+                <span><strong>{{ thought.likes.count }}</strong> Likes</span>
+                <span><strong>{{ thought.comments.count }}</strong> Comments</span>
+                <span><strong>{{ thought.reposts.count }}</strong> Reposts</span>
+            </div>
+
+            <div class="thought-actions-detail">
+                <button class="action-btn-detail {% if is_liked %}active{% endif %}"
+                        onclick="likeThought({{ thought.id }}, this)">
+                    <i class="{% if is_liked %}fas{% else %}far{% endif %} fa-heart"></i>
+                    <span>Like</span>
+                </button>
+
+                <button class="action-btn-detail" onclick="focusCommentInput()">
+                    <i class="far fa-comment"></i>
+                    <span>Comment</span>
+                </button>
+
+                <button class="action-btn-detail {% if is_reposted %}active{% endif %}"
+                        onclick="repostThought({{ thought.id }}, this)">
+                    <i class="fas fa-retweet"></i>
+                    <span>Repost</span>
+                </button>
+
+                <button class="action-btn-detail" onclick="shareThought({{ thought.id }})">
+                    <i class="fas fa-share"></i>
+                    <span>Share</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Comments Section -->
+        <div class="comments-section">
+            <h2>Comments ({{ comments.count }})</h2>
+
+            <!-- Add Comment -->
+            <form method="post" class="add-comment-form">
+                {% csrf_token %}
+                <div class="comment-input-container">
+                    <div class="user-avatar-comment">
+                        {% if user.profile_image %}
+                            <img src="{{ user.profile_image.url }}" alt="{{ user.username }}">
+                        {% else %}
+                            <div class="avatar-placeholder-comment">{{ user.username|first|upper }}</div>
+                        {% endif %}
+                    </div>
+                    <input
+                        type="text"
+                        name="content"
+                        id="commentInput"
+                        placeholder="Write a comment..."
+                        required>
+                    <button type="submit" class="btn-submit-comment-detail">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Comments List -->
+            <div class="comments-list-detail">
+                {% for comment in comments %}
+                <div class="comment-item-detail">
+                    <div class="comment-avatar-detail">
+                        {% if comment.user.profile_image %}
+                            <img src="{{ comment.user.profile_image.url }}" alt="{{ comment.user.username }}">
+                        {% else %}
+                            <div class="avatar-placeholder-comment">{{ comment.user.username|first|upper }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="comment-content-detail">
+                        <div class="comment-header-detail">
+                            <a href="{% url 'profile' comment.user.username %}" class="comment-user-name">
+                                {{ comment.user.get_full_name|default:comment.user.username }}
+                            </a>
+                            <span class="comment-username">@{{ comment.user.username }}</span>
+                            <span class="comment-time">· {{ comment.created_at|timesince }} ago</span>
+                        </div>
+                        <p class="comment-text">{{ comment.content }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="no-comments">
+                    <i class="far fa-comment"></i>
+                    <p>No comments yet. Be the first to comment!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.thought-detail-wrapper {
+    min-height: 100vh;
+    background: var(--bg-primary);
+    padding: 2rem 0;
+}
+
+.thought-detail-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.back-navigation {
+    margin-bottom: 1.5rem;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-back:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.thought-detail-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.thought-header-detail {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.user-info-detail {
+    display: flex;
+    gap: 1rem;
+}
+
+.user-avatar-detail {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.user-avatar-detail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder-detail {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-primary);
+    color: white;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.user-details-detail {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name-detail {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-decoration: none;
+    margin-bottom: 0.25rem;
+}
+
+.user-name-detail:hover {
+    color: var(--accent-primary);
+}
+
+.user-meta-detail {
+    font-size: 15px;
+    color: var(--text-muted);
+}
+
+.btn-delete-detail {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-delete-detail:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.repost-indicator-detail {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 8px;
+    color: var(--accent-primary);
+    font-size: 14px;
+}
+
+.thought-content-detail p {
+    font-size: 18px;
+    line-height: 1.7;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+    white-space: pre-wrap;
+}
+
+.thought-image-detail {
+    width: 100%;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border-color);
+}
+
+.thought-tags-detail {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.thought-tag-detail {
+    color: var(--accent-primary);
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.thought-tag-detail:hover {
+    text-decoration: underline;
+}
+
+.thought-timestamp {
+    font-size: 14px;
+    color: var(--text-muted);
+    padding: 1rem 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 1rem;
+}
+
+.thought-stats-detail {
+    display: flex;
+    gap: 2rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 1rem;
+    font-size: 15px;
+    color: var(--text-secondary);
+}
+
+.thought-stats-detail strong {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.thought-actions-detail {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+}
+
+.action-btn-detail {
+    padding: 1rem;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 8px;
+}
+
+.action-btn-detail:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.action-btn-detail.active {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.action-btn-detail i {
+    font-size: 20px;
+}
+
+/* Comments Section */
+.comments-section {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+.comments-section h2 {
+    font-size: 20px;
+    margin-bottom: 1.5rem;
+}
+
+.add-comment-form {
+    margin-bottom: 2rem;
+}
+
+.comment-input-container {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.user-avatar-comment {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.user-avatar-comment img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder-comment {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-primary);
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.comment-input-container input {
+    flex: 1;
+    padding: 1rem 1.25rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    color: var(--text-primary);
+    font-size: 15px;
+}
+
+.comment-input-container input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.btn-submit-comment-detail {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.btn-submit-comment-detail:hover {
+    background: var(--accent-hover);
+}
+
+.comments-list-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.comment-item-detail {
+    display: flex;
+    gap: 1rem;
+}
+
+.comment-avatar-detail {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.comment-avatar-detail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.comment-content-detail {
+    flex: 1;
+    background: var(--bg-tertiary);
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+}
+
+.comment-header-detail {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.comment-user-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.comment-user-name:hover {
+    text-decoration: underline;
+}
+
+.comment-username {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.comment-time {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.comment-text {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+
+.no-comments {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--text-muted);
+}
+
+.no-comments i {
+    font-size: 48px;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+}
+
+.no-comments p {
+    font-size: 15px;
+}
+
+@media (max-width: 768px) {
+    .thought-detail-container {
+        padding: 0 1rem;
+    }
+
+    .thought-actions-detail {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .action-btn-detail span {
+        display: none;
+    }
+}
+</style>
+
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function likeThought(thoughtId, button) {
+    fetch(`/thoughts/${thoughtId}/like/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const icon = button.querySelector('i');
+        if (data.liked) {
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+            button.classList.add('active');
+        } else {
+            icon.classList.remove('fas');
+            icon.classList.add('far');
+            button.classList.remove('active');
+        }
+
+        // Update like count
+        const stats = document.querySelector('.thought-stats-detail');
+        const likeSpan = stats.children[0];
+        likeSpan.innerHTML = `<strong>${data.like_count}</strong> Likes`;
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function repostThought(thoughtId, button) {
+    fetch(`/thoughts/${thoughtId}/repost/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.reposted) {
+            button.classList.add('active');
+            alert('Reposted successfully! Redirecting to thoughts feed...');
+            window.location.href = '/thoughts/';
+        } else {
+            button.classList.remove('active');
+        }
+
+        // Update repost count
+        const stats = document.querySelector('.thought-stats-detail');
+        const repostSpan = stats.children[2];
+        repostSpan.innerHTML = `<strong>${data.repost_count}</strong> Reposts`;
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function shareThought(thoughtId) {
+    const url = window.location.href;
+    if (navigator.share) {
+        navigator.share({
+            title: 'Check out this thought',
+            url: url
+        });
+    } else {
+        navigator.clipboard.writeText(url);
+        alert('Link copied to clipboard!');
+    }
+}
+
+function focusCommentInput() {
+    document.getElementById('commentInput').focus();
+}
+</script>
+{% endblock %}

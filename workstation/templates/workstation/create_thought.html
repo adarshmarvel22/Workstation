@@ -1,0 +1,749 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Thought - Workstation Hub{% endblock %}
+
+{% block content %}
+<div class="create-thought-wrapper">
+    <div class="create-thought-container">
+        <!-- Header -->
+        <div class="page-header">
+            <div class="breadcrumb">
+                <a href="{% url 'thoughts_feed' %}">Thoughts</a>
+                <span>/</span>
+                <span>Create</span>
+            </div>
+            <h1><i class="fas fa-lightbulb"></i> Share Your Thoughts</h1>
+            <p class="subtitle">What's on your mind?</p>
+        </div>
+
+        <div class="create-grid">
+            <!-- Form -->
+            <div class="form-section">
+                <form method="post" enctype="multipart/form-data" class="thought-form" id="thoughtForm">
+                    {% csrf_token %}
+
+                    <div class="form-card-thought">
+                        <!-- User Info -->
+                        <div class="user-header-create">
+                            <div class="user-avatar-create">
+                                {% if user.profile_image %}
+                                    <img src="{{ user.profile_image.url }}" alt="{{ user.username }}">
+                                {% else %}
+                                    <div class="avatar-placeholder-create">{{ user.username|first|upper }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="user-info-create">
+                                <h3>{{ user.get_full_name|default:user.username }}</h3>
+                                <p>@{{ user.username }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Content Input -->
+                        <div class="form-group-thought">
+                            <textarea
+                                name="content"
+                                id="content"
+                                placeholder="What's happening? Share your thoughts, ideas, or insights..."
+                                rows="8"
+                                maxlength="1000"
+                                required
+                                oninput="updateCharCount(); updatePreview()"></textarea>
+                            <div class="char-count">
+                                <span id="charCount">0</span> / 1000 characters
+                            </div>
+                        </div>
+
+                        <!-- Image Upload -->
+                        <div class="form-group-thought">
+                            <label class="image-upload-btn">
+                                <input
+                                    type="file"
+                                    name="image"
+                                    id="image"
+                                    accept="image/*"
+                                    onchange="previewImage(event)">
+                                <i class="fas fa-image"></i>
+                                <span>Add Image</span>
+                            </label>
+
+                            <div id="imagePreview" class="image-preview-container" style="display: none;">
+                                <img id="previewImg" src="" alt="Preview">
+                                <button type="button" class="remove-image-btn" onclick="removeImage()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tags -->
+                        <div class="form-group-thought">
+                            <label for="tags">
+                                <i class="fas fa-tag"></i> Add Tags (Optional)
+                            </label>
+                            <input
+                                type="text"
+                                name="tags"
+                                id="tags"
+                                placeholder="e.g., AI, Startup, WebDev (comma-separated)"
+                                oninput="updatePreview()">
+                            <small class="form-help">Use tags to help others find your thought</small>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="form-actions-thought">
+                            <div class="action-buttons-left">
+                                <button type="button" class="btn-icon-thought" title="Add Emoji">
+                                    <i class="far fa-smile"></i>
+                                </button>
+                                <button type="button" class="btn-icon-thought" title="Add GIF">
+                                    <i class="fas fa-file-image"></i>
+                                </button>
+                            </div>
+                            <div class="action-buttons-right">
+                                <a href="{% url 'thoughts_feed' %}" class="btn btn-outline">
+                                    Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary" id="submitBtn">
+                                    <i class="fas fa-paper-plane"></i> Post Thought
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Preview -->
+            <div class="preview-section">
+                <div class="preview-card-thought">
+                    <h3><i class="fas fa-eye"></i> Preview</h3>
+
+                    <div class="thought-preview">
+                        <div class="preview-user-header">
+                            <div class="preview-avatar">
+                                {% if user.profile_image %}
+                                    <img src="{{ user.profile_image.url }}" alt="{{ user.username }}">
+                                {% else %}
+                                    <div class="avatar-placeholder-preview">{{ user.username|first|upper }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="preview-user-info">
+                                <strong>{{ user.get_full_name|default:user.username }}</strong>
+                                <span>@{{ user.username }} · Just now</span>
+                            </div>
+                        </div>
+
+                        <div class="preview-content">
+                            <p id="previewText">Your thought will appear here...</p>
+
+                            <div id="previewImageContainer" style="display: none;">
+                                <img id="previewImageDisplay" src="" alt="Preview">
+                            </div>
+
+                            <div id="previewTags" class="preview-tags"></div>
+                        </div>
+
+                        <div class="preview-actions">
+                            <button class="preview-action-btn">
+                                <i class="far fa-heart"></i> Like
+                            </button>
+                            <button class="preview-action-btn">
+                                <i class="far fa-comment"></i> Comment
+                            </button>
+                            <button class="preview-action-btn">
+                                <i class="fas fa-retweet"></i> Repost
+                            </button>
+                            <button class="preview-action-btn">
+                                <i class="fas fa-share"></i> Share
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tips -->
+                <div class="tips-card">
+                    <h4><i class="fas fa-lightbulb"></i> Tips for Great Thoughts</h4>
+                    <ul>
+                        <li>Be authentic and share your genuine perspective</li>
+                        <li>Use relevant hashtags to increase visibility</li>
+                        <li>Add images to make your thoughts more engaging</li>
+                        <li>Keep it concise and focused</li>
+                        <li>Engage with others who comment</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.create-thought-wrapper {
+    min-height: 100vh;
+    background: var(--bg-primary);
+    padding: 2rem 0;
+}
+
+.create-thought-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.breadcrumb {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.breadcrumb a {
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    color: var(--accent-primary);
+}
+
+.breadcrumb span {
+    margin: 0 0.5rem;
+}
+
+.page-header h1 {
+    font-size: 32px;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.page-header h1 i {
+    color: var(--accent-primary);
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 16px;
+}
+
+.create-grid {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 2rem;
+}
+
+.form-card-thought {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+.user-header-create {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.user-avatar-create {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.user-avatar-create img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder-create {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-primary);
+    color: white;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.user-info-create h3 {
+    font-size: 18px;
+    margin-bottom: 0.25rem;
+}
+
+.user-info-create p {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.form-group-thought {
+    margin-bottom: 1.5rem;
+}
+
+.form-group-thought:last-child {
+    margin-bottom: 0;
+}
+
+.form-group-thought label {
+    display: block;
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-group-thought label i {
+    color: var(--accent-primary);
+}
+
+.form-group-thought textarea,
+.form-group-thought input[type="text"] {
+    width: 100%;
+    padding: 1rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 15px;
+    font-family: inherit;
+    transition: all 0.2s;
+    resize: vertical;
+}
+
+.form-group-thought textarea:focus,
+.form-group-thought input[type="text"]:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    background: var(--bg-secondary);
+}
+
+.char-count {
+    text-align: right;
+    margin-top: 0.5rem;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.char-count #charCount {
+    font-weight: 600;
+}
+
+.image-upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.image-upload-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.image-upload-btn input {
+    display: none;
+}
+
+.image-upload-btn i {
+    font-size: 18px;
+}
+
+.image-preview-container {
+    position: relative;
+    margin-top: 1rem;
+}
+
+.image-preview-container img {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.remove-image-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.remove-image-btn:hover {
+    background: rgba(239, 68, 68, 0.9);
+}
+
+.form-help {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.form-actions-thought {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.action-buttons-left {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-buttons-right {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.btn-icon-thought {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon-thought:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.btn-icon-thought i {
+    font-size: 18px;
+}
+
+/* Preview Section */
+.preview-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: sticky;
+    top: 80px;
+    height: fit-content;
+}
+
+.preview-card-thought {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.preview-card-thought h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.preview-card-thought h3 i {
+    color: var(--accent-primary);
+}
+
+.thought-preview {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 1.25rem;
+}
+
+.preview-user-header {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.preview-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.preview-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder-preview {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-primary);
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.preview-user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.preview-user-info strong {
+    font-size: 14px;
+    margin-bottom: 0.125rem;
+}
+
+.preview-user-info span {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.preview-content {
+    margin-bottom: 1rem;
+}
+
+.preview-content p {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    white-space: pre-wrap;
+    margin-bottom: 0.75rem;
+}
+
+#previewImageContainer img {
+    width: 100%;
+    border-radius: 8px;
+    margin-top: 0.75rem;
+}
+
+.preview-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.preview-tag {
+    color: var(--accent-primary);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.preview-actions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.preview-action-btn {
+    padding: 0.5rem;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: not-allowed;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.preview-action-btn i {
+    font-size: 16px;
+}
+
+/* Tips Card */
+.tips-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.tips-card h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tips-card h4 i {
+    color: var(--accent-primary);
+}
+
+.tips-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.tips-card li {
+    padding: 0.5rem 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.tips-card li:before {
+    content: "•";
+    color: var(--accent-primary);
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+}
+
+@media (max-width: 1200px) {
+    .create-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .preview-section {
+        position: static;
+    }
+}
+
+@media (max-width: 768px) {
+    .create-thought-container {
+        padding: 0 1rem;
+    }
+
+    .form-actions-thought {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .action-buttons-right {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .action-buttons-right .btn {
+        width: 100%;
+    }
+}
+</style>
+
+<script>
+function updateCharCount() {
+    const textarea = document.getElementById('content');
+    const charCount = document.getElementById('charCount');
+    const count = textarea.value.length;
+    charCount.textContent = count;
+
+    if (count > 950) {
+        charCount.style.color = '#ef4444';
+    } else if (count > 800) {
+        charCount.style.color = '#f59e0b';
+    } else {
+        charCount.style.color = 'var(--text-muted)';
+    }
+}
+
+function updatePreview() {
+    const content = document.getElementById('content').value;
+    const tags = document.getElementById('tags').value;
+
+    const previewText = document.getElementById('previewText');
+    const previewTags = document.getElementById('previewTags');
+
+    previewText.textContent = content || 'Your thought will appear here...';
+
+    // Update tags
+    if (tags) {
+        const tagArray = tags.split(',').map(t => t.trim()).filter(t => t);
+        previewTags.innerHTML = tagArray.map(tag =>
+            `<span class="preview-tag">#${tag}</span>`
+        ).join('');
+        previewTags.style.display = 'flex';
+    } else {
+        previewTags.style.display = 'none';
+    }
+}
+
+function previewImage(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            const previewDisplay = document.getElementById('previewImageDisplay');
+            const previewContainer = document.getElementById('previewImageContainer');
+
+            previewImg.src = e.target.result;
+            preview.style.display = 'block';
+
+            previewDisplay.src = e.target.result;
+            previewContainer.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function removeImage() {
+    document.getElementById('image').value = '';
+    document.getElementById('imagePreview').style.display = 'none';
+    document.getElementById('previewImageContainer').style.display = 'none';
+}
+
+// Prevent accidental navigation
+let formChanged = false;
+document.querySelectorAll('#thoughtForm input, #thoughtForm textarea').forEach(input => {
+    input.addEventListener('change', () => {
+        formChanged = true;
+    });
+});
+
+window.addEventListener('beforeunload', (e) => {
+    if (formChanged) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+
+document.getElementById('thoughtForm').addEventListener('submit', () => {
+    formChanged = false;
+});
+</script>
+{% endblock %}

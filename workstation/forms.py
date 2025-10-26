@@ -94,20 +94,35 @@ class MessageForm(forms.ModelForm):
         }
 
 
+# forms.py
 class ThoughtForm(forms.ModelForm):
+    tags = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'e.g., AI, Startup, WebDev (comma-separated)',
+            'class': 'tags-input'
+        }),
+        help_text='Comma-separated tags'
+    )
+
     class Meta:
         model = Thought
-        fields = ['content', 'image', 'tags']
+        fields = ['content', 'image']  # Remove tags from fields since we handle it separately
         widgets = {
             'content': forms.Textarea(attrs={
                 'placeholder': 'Share your thoughts...',
                 'rows': 4,
                 'class': 'thought-textarea'
-            }),
-            'tags': forms.SelectMultiple(attrs={
-                'class': 'tags-select'
             })
         }
+
+    def clean_tags(self):
+        tags_str = self.cleaned_data.get('tags', '')
+        if tags_str:
+            # Parse comma-separated tags
+            tag_names = [t.strip() for t in tags_str.split(',') if t.strip()]
+            return tag_names
+        return []
 
 
 class DailyPostForm(forms.ModelForm):

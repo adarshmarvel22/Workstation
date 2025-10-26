@@ -11,6 +11,7 @@ from django.utils import timezone
 from .forms import *
 import json
 
+from django.utils.text import slugify
 from django.contrib.auth.forms import UserCreationForm
 from django import forms
 from django.contrib.admin.views.decorators import staff_member_required
@@ -919,6 +920,18 @@ def thought_detail(request, thought_id):
         id=thought_id
     )
 
+    # Handle comment submission
+    if request.method == 'POST':
+        content = request.POST.get('content', '').strip()
+        if content:
+            ThoughtComment.objects.create(
+                thought=thought,
+                user=request.user,
+                content=content
+            )
+            messages.success(request, 'Comment added!')
+            return redirect('thought_detail', thought_id=thought_id)
+
     comments = thought.comments.filter(parent_comment=None).order_by('created_at')
 
     context = {
@@ -936,15 +949,27 @@ def create_thought(request):
     """Create a new thought/post"""
     if request.method == 'POST':
         form = ThoughtForm(request.POST, request.FILES)
+
+        if not form.is_valid():
+            print("Form errors:", form.errors)
+            messages.error(request, f'Form validation failed: {form.errors}')
+
         if form.is_valid():
             thought = form.save(commit=False)
             thought.user = request.user
             thought.save()
-            form.save_m2m()  # Save the many-to-many tags
+
+            tags_list = form.cleaned_data.get('tags', [])
+            if tags_list:
+                for tag_name in tags_list:
+                    tag, created = Tag.objects.get_or_create(
+                        name=tag_name,
+                        defaults={'slug': slugify(tag_name)}
+                    )
+                    thought.tags.add(tag)
+
             messages.success(request, 'Thought posted successfully!')
             return redirect('thoughts_feed')
-        else:
-            messages.error(request, 'Please correct the errors below')
     else:
         form = ThoughtForm()
 
@@ -1012,28 +1037,37 @@ def repost_thought(request, thought_id):
 
     original_thought = get_object_or_404(Thought, id=thought_id)
 
+    # Get the actual original if this is already a repost
+    if original_thought.is_repost and original_thought.original_thought:
+        original_thought = original_thought.original_thought
+
     # Check if already reposted
-    if request.user in original_thought.reposts.all():
+    existing_repost = Thought.objects.filter(
+        user=request.user,
+        original_thought=original_thought,
+        is_repost=True
+    ).first()
+
+    if existing_repost:
         # Remove repost
         original_thought.reposts.remove(request.user)
-        # Delete the repost thought
-        Thought.objects.filter(
-            user=request.user,
-            original_thought=original_thought,
-            is_repost=True
-        ).delete()
+        existing_repost.delete()
         reposted = False
     else:
         # Add repost
         original_thought.reposts.add(request.user)
         # Create repost thought
-        Thought.objects.create(
+        repost = Thought.objects.create(
             user=request.user,
             content=original_thought.content,
             image=original_thought.image,
             original_thought=original_thought,
             is_repost=True
         )
+        # Copy tags
+        for tag in original_thought.tags.all():
+            repost.tags.add(tag)
+
         reposted = True
 
     return JsonResponse({

@@ -55,10 +55,10 @@ urlpatterns = [
     path('thoughts/<int:thought_id>/repost/', views.repost_thought, name='repost_thought'),
     path('thoughts/<int:thought_id>/delete/', views.delete_thought, name='delete_thought'),
 
-    # Daily Posts (Admin only)
-    path('admin/daily-post/create/', views.create_daily_post, name='create_daily_post'),
-    path('admin/daily-posts/', views.manage_daily_posts, name='manage_daily_posts'),
-    path('admin/daily-post/<int:post_id>/delete/', views.delete_daily_post, name='delete_daily_post'),
+    # Daily Posts (Admin only) - Change these URLs
+    path('daily-posts/create/', views.create_daily_post, name='create_daily_post'),
+    path('daily-posts/manage/', views.manage_daily_posts, name='manage_daily_posts'),
+    path('daily-posts/<int:post_id>/delete/', views.delete_daily_post, name='delete_daily_post'),
 
     # AI Workers URLs
     path('ai-workers/', views.ai_workers_dashboard, name='ai_workers_dashboard'),

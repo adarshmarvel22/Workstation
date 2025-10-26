@@ -827,6 +827,18 @@
                     <a href="{% url 'edit_profile' %}" class="btn btn-outline btn-full">
                         <i class="fas fa-user-edit"></i> Edit Profile
                     </a>
+
+                <!-- Admin Only -->
+                {% if user.is_staff %}
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                    <a href="{% url 'create_daily_post' %}" class="btn btn-primary btn-full">
+                        <i class="fas fa-star"></i> Create Daily Post
+                    </a>
+                    <a href="{% url 'manage_daily_posts' %}" class="btn btn-outline btn-full" style="margin-top: 0.75rem;">
+                        <i class="fas fa-list"></i> Manage Daily Posts
+                    </a>
+                </div>
+                {% endif %}
                 </div>
             </div>
         </div>

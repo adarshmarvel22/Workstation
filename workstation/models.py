@@ -183,31 +183,14 @@ class Thought(models.Model):
     """Quick thoughts/posts by users"""
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='thoughts')
     content = models.TextField(max_length=1000)
-    image = models.ImageField(upload_to='thoughts/', blank=True, null=True)  # Add image support
+    image = models.ImageField(upload_to='thoughts/', blank=True, null=True)
     tags = models.ManyToManyField(Tag, blank=True, related_name='thoughts')
     likes = models.ManyToManyField(User, blank=True, related_name='liked_thoughts')
     reposts = models.ManyToManyField(User, blank=True, related_name='reposted_thoughts')
-    original_thought = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True,
-                                         related_name='reposts_of')  # For reposts
+    original_thought = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='reposts_of')
     is_repost = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"{self.user.username} - {self.content[:50]}"
-
-    def get_like_count(self):
-        return self.likes.count()
-
-    def get_comment_count(self):
-        return self.comments.count()
-
-    def get_repost_count(self):
-        return self.reposts.count()
-
-    class Meta:
-        db_table = 'thoughts'
-        ordering = ['-created_at']
 
 
 class ThoughtComment(models.Model):

@@ -1,0 +1,451 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Daily Post - Workstation Hub{% endblock %}
+
+{% block content %}
+<div class="create-daily-post-wrapper">
+    <div class="create-daily-post-container">
+        <div class="page-header">
+            <div class="breadcrumb">
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                <span>/</span>
+                <span>Create Daily Post</span>
+            </div>
+            <h1><i class="fas fa-star"></i> Create Daily Post</h1>
+            <p class="subtitle">Create an inspiring quote, greeting, meme, or tip for the community</p>
+        </div>
+
+        <div class="form-container">
+            <form method="post" enctype="multipart/form-data" class="daily-post-form">
+                {% csrf_token %}
+
+                <div class="form-card">
+                    <div class="form-group">
+                        <label for="post_type">Post Type *</label>
+                        <select id="post_type" name="post_type" required onchange="updatePlaceholders()">
+                            <option value="quote">Quote of the Day</option>
+                            <option value="greeting">Greeting</option>
+                            <option value="meme">Meme</option>
+                            <option value="tip">Tip of the Day</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="title">Title (Optional)</label>
+                        <input type="text" id="title" name="title" placeholder="e.g., Morning Motivation">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="content">Content *</label>
+                        <textarea id="content" name="content" rows="6" required placeholder="Enter your quote, greeting, or tip..."></textarea>
+                        <span class="form-help">This will be displayed to all users on the Thoughts page</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="author">Author/Source (Optional)</label>
+                        <input type="text" id="author" name="author" placeholder="e.g., Steve Jobs, Ancient Proverb">
+                        <span class="form-help">Only for quotes - who said it?</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Image (Optional)</label>
+                        <div class="image-upload-area">
+                            <input type="file" id="image" name="image" accept="image/*" onchange="previewImage(event)">
+                            <label for="image" class="upload-label">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <span>Click to upload image</span>
+                                <small>Recommended for memes. Max 5MB</small>
+                            </label>
+                            <div id="image-preview" class="image-preview"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-check"></i> Create Daily Post
+                    </button>
+                    <a href="{% url 'manage_daily_posts' %}" class="btn btn-outline btn-lg">
+                        <i class="fas fa-list"></i> View All Posts
+                    </a>
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline btn-lg">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+
+            <!-- Preview -->
+            <div class="preview-card">
+                <h3><i class="fas fa-eye"></i> Live Preview</h3>
+                <div class="preview-content" id="preview">
+                    <div class="preview-daily-post">
+                        <div class="preview-header">
+                            <div class="preview-badge">
+                                <i class="fas fa-quote-right"></i>
+                                <span id="preview-type">Quote of the Day</span>
+                            </div>
+                            <span class="preview-date">Today</span>
+                        </div>
+                        <h4 id="preview-title" style="display: none;"></h4>
+                        <div id="preview-image-container" style="display: none;">
+                            <img id="preview-img" src="" alt="Preview">
+                        </div>
+                        <p id="preview-text">Your content will appear here...</p>
+                        <p id="preview-author" style="display: none;"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.create-daily-post-wrapper {
+    min-height: 100vh;
+    background: var(--bg-primary);
+    padding: 2rem 0;
+}
+
+.create-daily-post-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    font-size: 32px;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.page-header h1 i {
+    color: var(--accent-primary);
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 16px;
+}
+
+.form-container {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 2rem;
+}
+
+.form-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.form-group input[type="text"],
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.875rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.form-group textarea {
+    resize: vertical;
+    font-family: inherit;
+    line-height: 1.6;
+}
+
+.form-help {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.image-upload-area {
+    position: relative;
+}
+
+.image-upload-area input[type="file"] {
+    display: none;
+}
+
+.upload-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: var(--bg-tertiary);
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.upload-label:hover {
+    border-color: var(--accent-primary);
+    background: var(--bg-hover);
+}
+
+.upload-label i {
+    font-size: 32px;
+    color: var(--accent-primary);
+    margin-bottom: 0.5rem;
+}
+
+.upload-label span {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.upload-label small {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.image-preview {
+    margin-top: 1rem;
+    display: none;
+}
+
+.image-preview img {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn-lg {
+    padding: 1rem 1.5rem;
+    font-size: 15px;
+}
+
+.preview-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+    position: sticky;
+    top: 80px;
+    height: fit-content;
+}
+
+.preview-card h3 {
+    font-size: 18px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.preview-card h3 i {
+    color: var(--accent-primary);
+}
+
+.preview-daily-post {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+    border: 2px solid var(--accent-primary);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.preview-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--accent-primary);
+    color: white;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.preview-date {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+#preview-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+#preview-image-container {
+    margin: 1rem 0;
+}
+
+#preview-img {
+    width: 100%;
+    border-radius: 8px;
+}
+
+#preview-text {
+    font-size: 16px;
+    line-height: 1.7;
+    font-style: italic;
+    margin-bottom: 1rem;
+}
+
+#preview-author {
+    font-size: 14px;
+    font-weight: 600;
+    text-align: right;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 1024px) {
+    .form-container {
+        grid-template-columns: 1fr;
+    }
+
+    .preview-card {
+        position: static;
+    }
+}
+
+@media (max-width: 768px) {
+    .create-daily-post-container {
+        padding: 0 1rem;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+    }
+}
+</style>
+
+<script>
+const typeIcons = {
+    'quote': 'fa-quote-right',
+    'greeting': 'fa-star',
+    'meme': 'fa-laugh',
+    'tip': 'fa-lightbulb'
+};
+
+const typePlaceholders = {
+    'quote': 'Enter an inspiring quote...',
+    'greeting': 'Write a friendly greeting for the community...',
+    'meme': 'Add a funny caption or description...',
+    'tip': 'Share a helpful tip or advice...'
+};
+
+function updatePlaceholders() {
+    const select = document.getElementById('post_type');
+    const type = select.value;
+    const content = document.getElementById('content');
+    const previewType = document.getElementById('preview-type');
+    const previewBadge = document.querySelector('.preview-badge i');
+
+    content.placeholder = typePlaceholders[type];
+    previewType.textContent = select.options[select.selectedIndex].text;
+    previewBadge.className = `fas ${typeIcons[type]}`;
+
+    // Update real-time preview
+    updatePreview();
+}
+
+function updatePreview() {
+    const title = document.getElementById('title').value;
+    const content = document.getElementById('content').value;
+    const author = document.getElementById('author').value;
+
+    const previewTitle = document.getElementById('preview-title');
+    const previewText = document.getElementById('preview-text');
+    const previewAuthor = document.getElementById('preview-author');
+
+    if (title) {
+        previewTitle.textContent = title;
+        previewTitle.style.display = 'block';
+    } else {
+        previewTitle.style.display = 'none';
+    }
+
+    previewText.textContent = content || 'Your content will appear here...';
+
+    if (author) {
+        previewAuthor.textContent = `— ${author}`;
+        previewAuthor.style.display = 'block';
+    } else {
+        previewAuthor.style.display = 'none';
+    }
+}
+
+function previewImage(event) {
+    const file = event.target.files[0];
+    const preview = document.getElementById('image-preview');
+    const previewImg = document.getElementById('preview-img');
+    const previewContainer = document.getElementById('preview-image-container');
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+            preview.style.display = 'block';
+
+            previewImg.src = e.target.result;
+            previewContainer.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+// Real-time preview updates
+document.getElementById('title').addEventListener('input', updatePreview);
+document.getElementById('content').addEventListener('input', updatePreview);
+document.getElementById('author').addEventListener('input', updatePreview);
+document.getElementById('post_type').addEventListener('change', updatePreview);
+</script>
+{% endblock %}

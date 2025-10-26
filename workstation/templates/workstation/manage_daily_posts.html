@@ -1,0 +1,423 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Daily Posts - Workstation Hub{% endblock %}
+
+{% block content %}
+<div class="manage-daily-posts-wrapper">
+    <div class="manage-daily-posts-container">
+        <div class="page-header">
+            <div class="breadcrumb">
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                <span>/</span>
+                <span>Manage Daily Posts</span>
+            </div>
+            <div class="header-content">
+                <div>
+                    <h1><i class="fas fa-star"></i> Daily Posts Management</h1>
+                    <p class="subtitle">Manage quotes, greetings, memes, and tips for the community</p>
+                </div>
+                <a href="{% url 'create_daily_post' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create New Post
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card-daily">
+                <i class="fas fa-quote-right"></i>
+                <div>
+                    <h3>{{ posts|length }}</h3>
+                    <p>Total Posts</p>
+                </div>
+            </div>
+            <div class="stat-card-daily">
+                <i class="fas fa-check-circle"></i>
+                <div>
+                    <h3>{{ posts|length }}</h3>
+                    <p>Active Posts</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Posts List -->
+        {% if posts %}
+        <div class="posts-list">
+            {% for post in posts %}
+            <div class="daily-post-item">
+                <div class="post-header-item">
+                    <div class="post-type-badge badge-{{ post.post_type }}">
+                        <i class="fas fa-{% if post.post_type == 'quote' %}quote-right{% elif post.post_type == 'meme' %}laugh{% elif post.post_type == 'tip' %}lightbulb{% else %}star{% endif %}"></i>
+                        {{ post.get_post_type_display }}
+                    </div>
+                    <div class="post-meta-item">
+                        <span class="post-date">{{ post.date|date:"M d, Y" }}</span>
+                        <span class="post-status {% if post.is_active %}status-active{% else %}status-inactive{% endif %}">
+                            {{ post.is_active|yesno:"Active,Inactive" }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="post-content-item">
+                    {% if post.title %}
+                    <h3>{{ post.title }}</h3>
+                    {% endif %}
+
+                    {% if post.image %}
+                    <div class="post-image-preview">
+                        <img src="{{ post.image.url }}" alt="{{ post.title }}">
+                    </div>
+                    {% endif %}
+
+                    <p class="post-text">{{ post.content|truncatewords:50 }}</p>
+
+                    {% if post.author %}
+                    <p class="post-author">— {{ post.author }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="post-footer-item">
+                    <span class="post-creator">
+                        <i class="fas fa-user"></i>
+                        Created by {{ post.created_by.username }}
+                    </span>
+                    <div class="post-actions-item">
+                        <button class="btn-icon-action" title="View">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <form method="post" action="{% url 'delete_daily_post' post.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-icon-action btn-danger"
+                                    onclick="return confirm('Delete this daily post?')"
+                                    title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state-daily">
+            <i class="fas fa-star"></i>
+            <h3>No daily posts yet</h3>
+            <p>Create your first daily post to inspire the community!</p>
+            <a href="{% url 'create_daily_post' %}" class="btn btn-primary" style="margin-top: 1.5rem;">
+                <i class="fas fa-plus"></i> Create Daily Post
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.manage-daily-posts-wrapper {
+    min-height: 100vh;
+    background: var(--bg-primary);
+    padding: 2rem 0;
+}
+
+.manage-daily-posts-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.breadcrumb {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.breadcrumb a {
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    color: var(--accent-primary);
+}
+
+.breadcrumb span {
+    margin: 0 0.5rem;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.page-header h1 {
+    font-size: 32px;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.page-header h1 i {
+    color: var(--accent-primary);
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 16px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card-daily {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-card-daily i {
+    font-size: 32px;
+    color: var(--accent-primary);
+}
+
+.stat-card-daily h3 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.stat-card-daily p {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.posts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.daily-post-item {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.2s;
+}
+
+.daily-post-item:hover {
+    border-color: var(--border-hover);
+    box-shadow: var(--shadow-md);
+}
+
+.post-header-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.post-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.badge-quote {
+    background: rgba(147, 51, 234, 0.1);
+    color: #9333ea;
+}
+
+.badge-greeting {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--accent-primary);
+}
+
+.badge-meme {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.badge-tip {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.post-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.post-date {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.post-status {
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-active {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--accent-primary);
+}
+
+.status-inactive {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.post-content-item {
+    margin-bottom: 1rem;
+}
+
+.post-content-item h3 {
+    font-size: 18px;
+    margin-bottom: 0.75rem;
+}
+
+.post-image-preview {
+    width: 100%;
+    max-width: 400px;
+    margin: 1rem 0;
+}
+
+.post-image-preview img {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.post-text {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+}
+
+.post-author {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-align: right;
+}
+
+.post-footer-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.post-creator {
+    font-size: 13px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.post-actions-item {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-icon-action {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-icon-action:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.btn-icon-action.btn-danger:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.empty-state-daily {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+}
+
+.empty-state-daily i {
+    font-size: 64px;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+.empty-state-daily h3 {
+    font-size: 24px;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state-daily p {
+    color: var(--text-secondary);
+    font-size: 15px;
+}
+
+@media (max-width: 768px) {
+    .manage-daily-posts-container {
+        padding: 0 1rem;
+    }
+
+    .header-content {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .post-header-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .post-footer-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
