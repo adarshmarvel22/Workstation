@@ -638,5 +638,9 @@
     .messages-wrapper{
         height: 90% !important;
     }
+    .sidebar-right mobile-active show{
+        position: absolute;
+        display: block;
+    }
 }
 /* ===== END OF MOBILE COMPONENTS CSS ===== */
