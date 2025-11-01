@@ -627,4 +627,16 @@
     color: var(--accent-primary);
 }
 
+
+@media (max-width: 767px) {
+    .messages-header{
+        padding: 1rem !important;
+    }
+    .messages-content {
+         padding: 1rem !important;
+    }
+    .messages-wrapper{
+        height: 90% !important;
+    }
+}
 /* ===== END OF MOBILE COMPONENTS CSS ===== */

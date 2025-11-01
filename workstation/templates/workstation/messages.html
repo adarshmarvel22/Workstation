@@ -175,6 +175,8 @@
     display: flex;
     flex-direction: column;
     background: var(--bg-secondary);
+    height: 100%;
+    overflow: hidden; /* Added to contain children */
 }
 
 .panel-header {
@@ -183,6 +185,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-shrink: 0; /* Prevent header from shrinking */
 }
 
 .panel-header h2 {
@@ -201,6 +204,7 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    flex-shrink: 0; /* Prevent search from shrinking */
 }
 
 .search-conversations i {
@@ -219,6 +223,7 @@
 .conversations-list {
     flex: 1;
     overflow-y: auto;
+    min-height: 0; /* Critical: Allows flex child to shrink below content size */
 }
 
 .conversation-item {
@@ -353,6 +358,7 @@
     justify-content: space-between;
     align-items: center;
     background: var(--bg-secondary);
+    flex-shrink: 0; /* Prevent header from shrinking */
 }
 
 .back-btn-mobile {
@@ -410,6 +416,7 @@
     flex-direction: column;
     gap: 1.5rem;
     scroll-behavior: smooth;
+    min-height: 0; /* Critical: Allows flex child to shrink */
 }
 
 .message-bubble {
@@ -499,6 +506,7 @@
     padding: 1.5rem;
     border-top: 1px solid var(--border-color);
     background: var(--bg-secondary);
+    flex-shrink: 0; /* Prevent input area from shrinking */
 }
 
 .messages-input form {
@@ -552,20 +560,21 @@
 
 /* Mobile Responsive */
 @media (max-width: 968px) {
-    .ws-mb-msg-btn{
+    .ws-mb-msg-btn {
         position: fixed;
         right: 47px;
+        z-index: 10;
     }
 
     .messages-container {
         padding: 0;
-        height: 100vh;
-        max-width: 90%;
+        max-width: 100%; /* Changed from 90% to prevent horizontal overflow */
     }
 
     .messages-wrapper {
         grid-template-columns: 1fr;
         border-radius: 0;
+        border: none;
     }
 
     .conversations-panel {
@@ -578,6 +587,42 @@
 
     .back-btn-mobile {
         display: flex !important;
+    }
+
+    /* Ensure proper height distribution on mobile */
+    .messages-content {
+        padding: 1rem;
+    }
+
+    .messages-input {
+        padding: 1rem;
+    }
+
+    .message-bubble {
+        max-width: 85%;
+    }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+    .panel-header {
+        padding: 1rem;
+    }
+
+    .search-conversations {
+        padding: 0.75rem 1rem;
+    }
+
+    .conversation-item {
+        padding: 0.875rem 1rem;
+    }
+
+    .messages-header {
+        padding: 1rem;
+    }
+
+    .messages-input textarea {
+        font-size: 16px; /* Prevents zoom on iOS */
     }
 }
 </style>

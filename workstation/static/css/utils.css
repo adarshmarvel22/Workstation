@@ -1,6 +1,5 @@
 .messages-container {
     position: fixed;
-    right: 20px;
     z-index: 999;
     max-width: 400px;
     width: 100%;
