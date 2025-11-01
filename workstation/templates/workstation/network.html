@@ -1,0 +1,393 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Network - Workstation Hub{% endblock %}
+
+{% block content %}
+<div class="network-container">
+    <!-- Left Sidebar -->
+    <aside class="sidebar-left">
+        <div class="sidebar-section">
+            <h3>Manage my network</h3>
+            <div class="network-stats">
+                <a href="#connections" class="network-stat-item active">
+                    <span class="stat-label">Connections</span>
+                    <span class="stat-value">{{ connections_count }}</span>
+                </a>
+                <a href="#requests" class="network-stat-item">
+                    <span class="stat-label">Invitations</span>
+                    <span class="stat-value">{{ pending_count }}</span>
+                </a>
+                <a href="#followers" class="network-stat-item">
+                    <span class="stat-label">Followers</span>
+                    <span class="stat-value">{{ user.get_followers_count }}</span>
+                </a>
+                <a href="#following" class="network-stat-item">
+                    <span class="stat-label">Following</span>
+                    <span class="stat-value">{{ user.get_following_count }}</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <h3>Filter by</h3>
+            <div class="filter-group">
+                <a href="?user_type=" class="filter-btn {% if not request.GET.user_type %}active{% endif %}">All</a>
+                <a href="?user_type=founder" class="filter-btn {% if request.GET.user_type == 'founder' %}active{% endif %}">Founders</a>
+                <a href="?user_type=professional" class="filter-btn {% if request.GET.user_type == 'professional' %}active{% endif %}">Professionals</a>
+                <a href="?user_type=student" class="filter-btn {% if request.GET.user_type == 'student' %}active{% endif %}">Students</a>
+                <a href="?user_type=enthusiast" class="filter-btn {% if request.GET.user_type == 'enthusiast' %}active{% endif %}">Enthusiasts</a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-area">
+        <!-- Pending Requests Section -->
+        {% if pending_requests %}
+        <section class="requests-section" id="requests">
+            <div class="section-header">
+                <h2>Invitations ({{ pending_count }})</h2>
+            </div>
+
+            <div class="requests-grid">
+                {% for request in pending_requests %}
+                <div class="request-card" id="request-{{ request.id }}">
+                    <div class="request-content">
+                        <div class="request-avatar">
+                            {% if request.from_user.profile_image %}
+                                <img src="{{ request.from_user.profile_image.url }}" alt="{{ request.from_user.username }}">
+                            {% else %}
+                                <div class="avatar-placeholder">
+                                    {{ request.from_user.username|first|upper }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="request-info">
+                            <h3>
+                                <a href="{% url 'profile' request.from_user.username %}">
+                                    {{ request.from_user.get_full_name|default:request.from_user.username }}
+                                </a>
+                            </h3>
+                            <p class="request-title">{{ request.from_user.title|default:"Member" }}</p>
+                            <p class="request-meta">
+                                <span class="user-type-badge">{{ request.from_user.get_user_type_display }}</span>
+                                {% if request.from_user.location %}
+                                    <span class="location">
+                                        <i class="fas fa-map-marker-alt"></i> {{ request.from_user.location }}
+                                    </span>
+                                {% endif %}
+                            </p>
+
+                            {% if request.message %}
+                            <p class="request-message">{{ request.message }}</p>
+                            {% endif %}
+
+                            <div class="mutual-connections">
+                                <i class="fas fa-users"></i>
+                                {{ request.from_user.get_followers_count }} connection{{ request.from_user.get_followers_count|pluralize }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="request-actions">
+                        <button class="btn btn-primary" onclick="respondToRequest({{ request.id }}, 'accept')">
+                            Accept
+                        </button>
+                        <button class="btn btn-outline" onclick="respondToRequest({{ request.id }}, 'reject')">
+                            Ignore
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- People You May Know -->
+        <section class="suggestions-section">
+            <div class="section-header">
+                <h2>People you may know</h2>
+                <div class="section-actions">
+                    <form method="GET" class="search-form-inline">
+                        <input type="text"
+                               name="search"
+                               placeholder="Search people..."
+                               value="{{ request.GET.search }}"
+                               class="search-input">
+                        <button type="submit" class="btn btn-outline">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="people-grid">
+                {% for person in suggested_people %}
+                <div class="person-card">
+                    <div class="person-header">
+                        <div class="person-avatar">
+                            {% if person.profile_image %}
+                                <img src="{{ person.profile_image.url }}" alt="{{ person.username }}">
+                            {% else %}
+                                <div class="avatar-placeholder">
+                                    {{ person.username|first|upper }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="person-content">
+                        <h3>
+                            <a href="{% url 'profile' person.username %}">
+                                {{ person.get_full_name|default:person.username }}
+                            </a>
+                        </h3>
+                        <p class="person-title">{{ person.title|default:"Member" }}</p>
+
+                        <div class="person-meta">
+                            <span class="user-type-badge">{{ person.get_user_type_display }}</span>
+                            {% if person.location %}
+                                <span class="location">
+                                    <i class="fas fa-map-marker-alt"></i> {{ person.location }}
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        {% if person.bio %}
+                        <p class="person-bio">{{ person.bio|truncatewords:20 }}</p>
+                        {% endif %}
+
+                        <div class="person-stats">
+                            <span>
+                                <i class="fas fa-users"></i>
+                                {{ person.followers_count }} connection{{ person.followers_count|pluralize }}
+                            </span>
+                        </div>
+
+                        <div class="person-skills">
+                            {% for skill in person.skills.all|slice:":3" %}
+                            <span class="skill-tag">{{ skill.name }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="person-actions">
+                        <button class="btn btn-primary btn-full"
+                                onclick="sendConnectionRequest('{{ person.username }}', this)">
+                            <i class="fas fa-user-plus"></i> Connect
+                        </button>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    <i class="fas fa-users"></i>
+                    <h3>No suggestions found</h3>
+                    <p>Try adjusting your filters or check back later</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if suggested_people.has_other_pages %}
+            <div class="pagination">
+                {% if suggested_people.has_previous %}
+                <a href="?page={{ suggested_people.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.user_type %}&user_type={{ request.GET.user_type }}{% endif %}"
+                   class="page-btn">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+                {% endif %}
+
+                {% for num in suggested_people.paginator.page_range %}
+                    {% if suggested_people.number == num %}
+                    <span class="page-btn active">{{ num }}</span>
+                    {% elif num > suggested_people.number|add:'-3' and num < suggested_people.number|add:'3' %}
+                    <a href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.user_type %}&user_type={{ request.GET.user_type }}{% endif %}"
+                       class="page-btn">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if suggested_people.has_next %}
+                <a href="?page={{ suggested_people.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.user_type %}&user_type={{ request.GET.user_type }}{% endif %}"
+                   class="page-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </section>
+    </div>
+
+    <!-- Right Sidebar -->
+    <aside class="sidebar-right">
+        <div class="connections-card">
+            <div class="card-header">
+                <h3>Your connections</h3>
+                <span class="count-badge">{{ connections_count }}</span>
+            </div>
+
+            <div class="connections-list">
+                {% for connection in connections|slice:":5" %}
+                <div class="connection-item">
+                    <div class="connection-avatar">
+                        {% if connection.profile_image %}
+                            <img src="{{ connection.profile_image.url }}" alt="{{ connection.username }}">
+                        {% else %}
+                            <div class="avatar-placeholder-small">
+                                {{ connection.username|first|upper }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="connection-info">
+                        <a href="{% url 'profile_detail' connection.username %}" class="connection-name">
+                            {{ connection.get_full_name|default:connection.username }}
+                        </a>
+                        <p class="connection-title">{{ connection.title|default:"Member"|truncatewords:5 }}</p>
+                    </div>
+                    <button class="btn-icon" onclick="unfollowUser('{{ connection.username }}', this)">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+                {% empty %}
+                <div class="empty-state-small">
+                    <p>No connections yet</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if connections_count > 5 %}
+            <a href="#" class="view-all-link">View all connections →</a>
+            {% endif %}
+        </div>
+
+        <div class="grow-network-card">
+            <h3>Grow your network</h3>
+            <p>Connect with people to discover opportunities and build your professional circle.</p>
+            <ul class="tips-list">
+                <li><i class="fas fa-check-circle"></i> Complete your profile</li>
+                <li><i class="fas fa-check-circle"></i> Join projects</li>
+                <li><i class="fas fa-check-circle"></i> Share your thoughts</li>
+                <li><i class="fas fa-check-circle"></i> Engage with the community</li>
+            </ul>
+        </div>
+    </aside>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function sendConnectionRequest(username, button) {
+    const card = button.closest('.person-card');
+
+    fetch(`/network/connect/${username}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            button.innerHTML = '<i class="fas fa-clock"></i> Pending';
+            button.classList.remove('btn-primary');
+            button.classList.add('btn-outline');
+            button.disabled = true;
+            showToast(data.message);
+        } else {
+            showToast(data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Failed to send connection request', 'error');
+    });
+}
+
+function respondToRequest(requestId, action) {
+    const requestCard = document.getElementById(`request-${requestId}`);
+
+    fetch(`/network/request/${requestId}/respond/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `action=${action}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            requestCard.style.opacity = '0';
+            setTimeout(() => {
+                requestCard.remove();
+                // Update count
+                const countElement = document.querySelector('.requests-section h2');
+                if (countElement) {
+                    const newCount = parseInt(countElement.textContent.match(/\d+/)[0]) - 1;
+                    countElement.textContent = `Invitations (${newCount})`;
+                }
+            }, 300);
+            showToast(data.message);
+        } else {
+            showToast(data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Failed to respond to request', 'error');
+    });
+}
+
+function unfollowUser(username, button) {
+    if (!confirm(`Are you sure you want to disconnect from ${username}?`)) {
+        return;
+    }
+
+    fetch(`/network/unfollow/${username}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const connectionItem = button.closest('.connection-item');
+            connectionItem.style.opacity = '0';
+            setTimeout(() => connectionItem.remove(), 300);
+            showToast(data.message);
+        } else {
+            showToast(data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Failed to unfollow user', 'error');
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function showToast(message, type = 'success') {
+    // Implement your toast notification here
+    alert(message);
+}
+</script>
+{% endblock %}
+

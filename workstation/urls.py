@@ -60,6 +60,12 @@ urlpatterns = [
     path('daily-posts/manage/', views.manage_daily_posts, name='manage_daily_posts'),
     path('daily-posts/<int:post_id>/delete/', views.delete_daily_post, name='delete_daily_post'),
 
+    # Network/Collaborators
+    path('network/', views.network, name='network'),
+    path('network/connect/<str:username>/', views.send_connection_request, name='send_connection_request'),
+    path('network/request/<int:request_id>/respond/', views.respond_to_request, name='respond_to_request'),
+    path('network/unfollow/<str:username>/', views.unfollow_user, name='unfollow_user'),
+
     # AI Workers URLs
     path('ai-workers/', views.ai_workers_dashboard, name='ai_workers_dashboard'),
     path('ai-workers/<int:worker_id>/', views.ai_conversation, name='ai_conversation'),

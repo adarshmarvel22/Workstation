@@ -200,6 +200,182 @@ def explore(request):
     }
     return render(request, 'workstation/explore.html', context)
 
+@login_required
+def network(request):
+    """Network/Collaborators page - similar to LinkedIn My Network"""
+
+    # Get pending connection requests received by current user
+    pending_requests = ConnectionRequest.objects.filter(
+        to_user=request.user,
+        status='pending'
+    ).select_related('from_user')[:10]
+
+    # Get suggested people (users not following and no pending requests)
+    excluded_user_ids = list(request.user.following.values_list('id', flat=True))
+    excluded_user_ids.append(request.user.id)
+
+    # Also exclude users who already have pending requests with current user
+    pending_request_user_ids = list(
+        ConnectionRequest.objects.filter(
+            Q(from_user=request.user) | Q(to_user=request.user),
+            status='pending'
+        ).values_list('from_user_id', 'to_user_id')
+    )
+    for from_id, to_id in pending_request_user_ids:
+        if from_id not in excluded_user_ids:
+            excluded_user_ids.append(from_id)
+        if to_id not in excluded_user_ids:
+            excluded_user_ids.append(to_id)
+
+    # Get users with similar interests or skills
+    user_interests = request.user.interests.all()
+    user_skills = request.user.skills.all()
+
+    suggested_people = User.objects.exclude(
+        id__in=excluded_user_ids
+    ).filter(
+        Q(interests__in=user_interests) | Q(skills__in=user_skills)
+    ).distinct().annotate(
+        followers_count=Count('followers')
+    )
+
+    # Get current user's connections (people they follow)
+    connections = request.user.following.all().annotate(
+        followers_count=Count('followers'),
+        following_count=Count('following')
+    )
+
+    # Filters
+    user_type = request.GET.get('user_type', '')
+    search = request.GET.get('search', '')
+
+    if user_type:
+        suggested_people = suggested_people.filter(user_type=user_type)
+        connections = connections.filter(user_type=user_type)
+
+    if search:
+        suggested_people = suggested_people.filter(
+            Q(username__icontains=search) |
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search) |
+            Q(bio__icontains=search) |
+            Q(title__icontains=search)
+        )
+        connections = connections.filter(
+            Q(username__icontains=search) |
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search) |
+            Q(bio__icontains=search) |
+            Q(title__icontains=search)
+        )
+
+    suggested_people = suggested_people[:20]
+
+    # Pagination for suggested people
+    paginator = Paginator(suggested_people, 12)
+    page = request.GET.get('page')
+    suggested_people_page = paginator.get_page(page)
+
+    context = {
+        'pending_requests': pending_requests,
+        'pending_count': pending_requests.count(),
+        'suggested_people': suggested_people_page,
+        'connections': connections,
+        'connections_count': connections.count(),
+        'user_types': User.USER_TYPES,
+    }
+
+    return render(request, 'workstation/network.html', context)
+
+@login_required
+def send_connection_request(request, username):
+    """Send a connection request to another user"""
+    if request.method == 'POST':
+        to_user = get_object_or_404(User, username=username)
+
+        if to_user == request.user:
+            return JsonResponse({'error': 'Cannot send request to yourself'}, status=400)
+
+        # Check if already following
+        if request.user.is_following(to_user):
+            return JsonResponse({'error': 'Already connected'}, status=400)
+
+        # Check if request already exists
+        existing_request = ConnectionRequest.objects.filter(
+            from_user=request.user,
+            to_user=to_user,
+            status='pending'
+        ).first()
+
+        if existing_request:
+            return JsonResponse({'error': 'Request already sent'}, status=400)
+
+        # Create connection request
+        ConnectionRequest.objects.create(
+            from_user=request.user,
+            to_user=to_user,
+            message=request.POST.get('message', '')
+        )
+
+        return JsonResponse({'success': True, 'message': 'Connection request sent'})
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+@login_required
+def respond_to_request(request, request_id):
+    """Accept or reject a connection request"""
+    if request.method == 'POST':
+        connection_request = get_object_or_404(
+            ConnectionRequest,
+            id=request_id,
+            to_user=request.user,
+            status='pending'
+        )
+
+        action = request.POST.get('action')
+
+        if action == 'accept':
+            connection_request.status = 'accepted'
+            connection_request.save()
+
+            # Add to following/followers
+            request.user.following.add(connection_request.from_user)
+            connection_request.from_user.following.add(request.user)
+
+            return JsonResponse({
+                'success': True,
+                'message': f'You are now connected with {connection_request.from_user.username}'
+            })
+
+        elif action == 'reject':
+            connection_request.status = 'rejected'
+            connection_request.save()
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Connection request declined'
+            })
+
+        return JsonResponse({'error': 'Invalid action'}, status=400)
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+@login_required
+def unfollow_user(request, username):
+    """Unfollow a user"""
+    if request.method == 'POST':
+        user_to_unfollow = get_object_or_404(User, username=username)
+
+        if request.user.is_following(user_to_unfollow):
+            request.user.following.remove(user_to_unfollow)
+            return JsonResponse({
+                'success': True,
+                'message': f'Unfollowed {user_to_unfollow.username}'
+            })
+
+        return JsonResponse({'error': 'Not following this user'}, status=400)
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
 
 # @login_required
 # def project_detail(request, slug):
@@ -313,12 +489,25 @@ def profile(request, username):
     supported_projects = user.supported_projects.all()
     recent_thoughts = user.thoughts.all()[:10]
 
+    is_following = False
+    has_pending_request = False
+
+    if request.user.is_authenticated and request.user != user:
+        is_following = request.user.following.filter(pk=user.pk).exists()
+        has_pending_request = ConnectionRequest.objects.filter(
+            from_user=request.user,
+            to_user=user,
+            status='pending'
+        ).exists()
+
     context = {
         'profile_user': user,
         'created_projects': created_projects,
         'joined_projects': joined_projects,
         'supported_projects': supported_projects,
         'recent_thoughts': recent_thoughts,
+        'is_following': is_following,
+        'has_pending_request': has_pending_request,
     }
     return render(request, 'workstation/profile.html', context)
 

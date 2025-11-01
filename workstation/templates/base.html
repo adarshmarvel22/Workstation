@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
     <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
     <link rel="stylesheet" href="{% static 'css/utils.css' %}">
+    <link rel="stylesheet" href="{% static 'css/network.css' %}">
 
 
     {% block extra_css %}{% endblock %}
@@ -38,6 +39,12 @@
                     <a href="{% url 'explore' %}" class="nav-link {% if request.resolver_match.url_name == 'explore' %}active{% endif %}">Explore</a>
                     <a href="{% url 'home' %}" class="nav-link">Start</a>
                     <a href="{% url 'thoughts_feed' %}" class="nav-link">Thoughts</a>
+                    <a href="{% url 'network' %}" class="nav-link">
+                        <i class="fas fa-users"></i> My Network
+                        {% if pending_requests_count > 0 %}
+                        <span class="badge">{{ pending_requests_count }}</span>
+                        {% endif %}
+                    </a>
 <!--                    <a href="#" class="nav-link">Jobs</a>-->
 <!--                    <a href="#" class="nav-link">Startups</a>-->
                     <a href="{% url 'ai_workers_dashboard' %}" class="nav-link">AI Workers</a>
