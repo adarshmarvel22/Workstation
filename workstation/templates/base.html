@@ -40,7 +40,7 @@
                     <a href="{% url 'home' %}" class="nav-link">Start</a>
                     <a href="{% url 'thoughts_feed' %}" class="nav-link">Thoughts</a>
                     <a href="{% url 'network' %}" class="nav-link">
-                        <i class="fas fa-users"></i> My Network
+                        <i class="fas fa-users"></i> Network
                         {% if pending_requests_count > 0 %}
                         <span class="badge">{{ pending_requests_count }}</span>
                         {% endif %}

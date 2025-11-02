@@ -240,7 +240,7 @@
                         {% endif %}
                     </div>
                     <div class="connection-info">
-                        <a href="{% url 'profile_detail' connection.username %}" class="connection-name">
+                        <a href="{% url 'profile' connection.username %}" class="connection-name">
                             {{ connection.get_full_name|default:connection.username }}
                         </a>
                         <p class="connection-title">{{ connection.title|default:"Member"|truncatewords:5 }}</p>
