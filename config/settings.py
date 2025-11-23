@@ -205,34 +205,31 @@ WSGI_APPLICATION = "config.wsgi.application"
 # -- 4. Set future privileges (ensures tables/sequences created later also get permissions)
 # ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO your_db_user;
 # ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO your_db_user;
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': config('DATABASE_NAME', default='workstation_db'),
-#         'USER': config('DATABASE_USER', default='workstation_user'),
-#         'PASSWORD': config('DATABASE_PASSWORD'),
-#         'HOST': config('DATABASE_HOST', default='localhost'),
-#         'PORT': config('DATABASE_PORT', default='5432'),
+
+# if not DEBUG:
+#     DATABASES = {
+#         'default': dj_database_url.config(
+#             conn_max_age=600,
+#             ssl_require=True
+#         )
 #     }
-# }
-if not DEBUG:
-    DATABASES = {
-        'default': dj_database_url.config(
-            conn_max_age=600,
-            ssl_require=True
-        )
+# else:
+    # DATABASES = {
+    #     'default': {
+    #         'ENGINE': 'django.db.backends.postgresql',
+    #         'NAME': config('DATABASE_NAME', default='ws2'),
+    #         'USER': config('DATABASE_USER', default='postgres'),
+    #         'PASSWORD': config('DATABASE_PASSWORD'),
+    #         'HOST': 'localhost',
+    #         'PORT': '5432',
+    #     }
+    # }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('DATABASE_NAME', default='ws2'),
-            'USER': config('DATABASE_USER', default='postgres'),
-            'PASSWORD': config('DATABASE_PASSWORD'),
-            'HOST': 'localhost',
-            'PORT': '5432',
-        }
-    }
+}
 
 AUTH_USER_MODEL = 'workstation.User'
 
