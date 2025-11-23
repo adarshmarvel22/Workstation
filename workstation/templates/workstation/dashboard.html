@@ -908,19 +908,6 @@
                 .catch(error => console.error('Error:', error));
     }
 
-        // Auto-refresh notifications count
-    function updateNotificationCount() {
-        fetch('/api/notifications/unread_count/')
-            .then(response => response.json())
-            .then(data => {
-                const badge = document.querySelector('.stat-badge');
-                if (badge && data.unread_count > 0) {
-                    badge.textContent = data.unread_count;
-                }
-            })
-            .catch(error => console.error('Error:', error));
-    }
-
     // Refresh every 30 seconds
     setInterval(updateNotificationCount, 30000);
 
