@@ -122,14 +122,18 @@
             <div class="project-card">
                 <div class="project-image">
                     {% if project.cover_image %}
-                        <img src="{{ project.cover_image.url }}" alt="{{ project.title }}">
+                    <img src="{{ project.cover_image.url }}" alt="{{ project.title }}">
                     {% else %}
-                        <div class="project-placeholder">
-                            <i class="fas fa-code"></i>
-                        </div>
+                    <div class="project-placeholder">
+                        <i class="fas fa-code"></i>
+                    </div>
                     {% endif %}
-                    <button class="bookmark-btn">
+                    <button class="bookmark-btn" onclick="bookmarkProject('{{ project.slug }}', this)">
+                        {% if project.id in saved_project_ids %}
+                        <i class="fas fa-bookmark"></i>
+                        {% else %}
                         <i class="far fa-bookmark"></i>
+                        {% endif %}
                     </button>
                 </div>
 
@@ -150,9 +154,9 @@
                             {% for member in project.members.all|slice:":3" %}
                             <div class="avatar-small">
                                 {% if member.profile_image %}
-                                    <img src="{{ member.profile_image.url }}" alt="{{ member.username }}">
+                                <img src="{{ member.profile_image.url }}" alt="{{ member.username }}">
                                 {% else %}
-                                    <div class="avatar-placeholder-small">{{ member.username|first|upper }}</div>
+                                <div class="avatar-placeholder-small">{{ member.username|first|upper }}</div>
                                 {% endif %}
                             </div>
                             {% endfor %}
@@ -191,18 +195,18 @@
             {% endif %}
 
             {% for num in projects.paginator.page_range %}
-                {% if projects.number == num %}
-                <span class="page-btn active">{{ num }}</span>
-                {% elif num > projects.number|add:'-3' and num < projects.number|add:'3' %}
-                <a href="?page={{ num }}" class="page-btn">{{ num }}</a>
+            {% if projects.number == num %}
+            <span class="page-btn active">{{ num }}</span>
+            {% elif num > projects.number|add:'-3' and num < projects.number|add:'3' %} <a href="?page={{ num }}"
+                class="page-btn">{{ num }}</a>
                 {% endif %}
-            {% endfor %}
+                {% endfor %}
 
-            {% if projects.has_next %}
-            <a href="?page={{ projects.next_page_number }}" class="page-btn">
-                <i class="fas fa-chevron-right"></i>
-            </a>
-            {% endif %}
+                {% if projects.has_next %}
+                <a href="?page={{ projects.next_page_number }}" class="page-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+                {% endif %}
         </div>
         {% endif %}
     </div>
@@ -214,9 +218,9 @@
             <div class="profile-header">
                 <div class="profile-avatar">
                     {% if user.profile_image %}
-                        <img src="{{ user.profile_image.url }}" alt="{{ user.username }}">
+                    <img src="{{ user.profile_image.url }}" alt="{{ user.username }}">
                     {% else %}
-                        <div class="avatar-placeholder-large">{{ user.username|first|upper }}</div>
+                    <div class="avatar-placeholder-large">{{ user.username|first|upper }}</div>
                     {% endif %}
                 </div>
                 <button class="edit-btn" onclick="location.href='/profile/edit/'">
@@ -337,14 +341,38 @@
                 'Content-Type': 'application/json'
             }
         })
-        .then(response => response.json())
-        .then(data => {
-            showToast(data.supported ? 'Project supported!' : 'Support removed');
-        });
+            .then(response => response.json())
+            .then(data => {
+                showToast(data.supported ? 'Project supported!' : 'Support removed');
+            });
     }
 
     function joinProject(slug) {
         window.location.href = `/projects/${slug}/`;
+    }
+
+    function bookmarkProject(slug, btn) {
+        fetch(`/projects/${slug}/bookmark/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const icon = btn.querySelector('i');
+                    if (data.bookmarked) {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                    } else {
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                    }
+                    showToast(data.message);
+                }
+            });
     }
 </script>
 {% endblock %}

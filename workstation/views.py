@@ -191,8 +191,13 @@ def explore(request):
         project_count=Count('projects')
     ).order_by('-project_count')[:15]
 
+    saved_project_ids = []
+    if request.user.is_authenticated:
+        saved_project_ids = list(request.user.saved_projects.values_list('id', flat=True))
+
     context = {
         'projects': projects,
+        'saved_project_ids': saved_project_ids,
         'trending_tags': trending_tags,
         'user_types': User.USER_TYPES,
         'stages': Project.PROJECT_STAGES,
@@ -660,6 +665,28 @@ def support_project(request, slug):
         'success': True,
         'supported': supported,
         'supporters_count': project.supporters.count()
+    })
+
+
+@login_required
+@require_POST
+def bookmark_project(request, slug):
+    """Bookmark/unbookmark a project"""
+    project = get_object_or_404(Project, slug=slug)
+
+    if project in request.user.saved_projects.all():
+        request.user.saved_projects.remove(project)
+        bookmarked = False
+        message = 'Project removed from bookmarks'
+    else:
+        request.user.saved_projects.add(project)
+        bookmarked = True
+        message = 'Project saved to bookmarks'
+
+    return JsonResponse({
+        'success': True,
+        'bookmarked': bookmarked,
+        'message': message
     })
 
 
@@ -1340,6 +1367,9 @@ def dashboard(request):
         id__in=my_projects.values_list('id', flat=True)
     ).order_by('-projectmembership__joined_at')[:5]
 
+    # Get saved projects
+    saved_projects = request.user.saved_projects.all().order_by('-created_at')[:5]
+
     # Get recent messages
     recent_messages = Message.objects.filter(
         recipient=request.user
@@ -1371,6 +1401,7 @@ def dashboard(request):
     context = {
         'my_projects': my_projects,
         'joined_projects': joined_projects,
+        'saved_projects': saved_projects,
         'recent_messages': recent_messages,
         'notifications': unread_notifications,
         'stats': stats,

@@ -18,6 +18,7 @@ urlpatterns = [
     path('projects/<slug:slug>/', views.project_detail, name='project_detail'),
     path('projects/<slug:slug>/edit/', views.edit_project, name='edit_project'),
     path('projects/<slug:slug>/support/', views.support_project, name='support_project'),
+    path('projects/<slug:slug>/bookmark/', views.bookmark_project, name='bookmark_project'),
     path('projects/<slug:slug>/join/', views.join_project, name='join_project'),
     path('projects/<slug:slug>/comment/', views.add_comment, name='add_comment'),
     path('projects/<slug:slug>/requests/', views.project_requests, name='project_requests'),

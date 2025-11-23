@@ -5,551 +5,551 @@
 
 {% block extra_css %}
 <style>
-.dashboard-container {
-    max-width: 1600px;
-    margin: 0 auto;
-    padding: 2rem;
-}
-
-.dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-}
-
-.dashboard-greeting h1 {
-    font-size: 32px;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-}
-
-.dashboard-greeting p {
-    color: var(--text-secondary);
-    font-size: 15px;
-}
-
-.dashboard-actions {
-    display: flex;
-    gap: 1rem;
-}
-
-/* Stats Grid */
-.stats-overview {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.stat-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 1.75rem;
-    transition: all 0.3s;
-    cursor: pointer;
-}
-
-.stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-    border-color: var(--accent-primary);
-}
-
-.stat-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
-}
-
-.stat-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-}
-
-.stat-icon.projects {
-    background: rgba(59, 130, 246, 0.1);
-    color: #3b82f6;
-}
-
-.stat-icon.joined {
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--accent-primary);
-}
-
-.stat-icon.supported {
-    background: rgba(236, 72, 153, 0.1);
-    color: #ec4899;
-}
-
-.stat-icon.messages {
-    background: rgba(245, 158, 11, 0.1);
-    color: #f59e0b;
-}
-
-.stat-icon.notifications {
-    background: rgba(139, 92, 246, 0.1);
-    color: #8b5cf6;
-}
-
-.stat-value {
-    font-size: 36px;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 0.25rem;
-}
-
-.stat-label {
-    font-size: 14px;
-    color: var(--text-secondary);
-}
-
-.stat-badge {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 0.25rem 0.625rem;
-    border-radius: 12px;
-}
-
-/* Main Content Grid */
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: 1fr 380px;
-    gap: 2rem;
-}
-
-.dashboard-main {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-}
-
-.dashboard-section {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 2rem;
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-}
-
-.section-header h2 {
-    font-size: 20px;
-    font-weight: 600;
-}
-
-.section-link {
-    color: var(--accent-primary);
-    font-size: 14px;
-    text-decoration: none;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.section-link:hover {
-    text-decoration: underline;
-}
-
-/* Project List */
-.project-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.project-item {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    padding: 1.25rem;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    transition: all 0.2s;
-}
-
-.project-item:hover {
-    background: var(--bg-hover);
-    border-color: var(--border-hover);
-}
-
-.project-image-small {
-    width: 80px;
-    height: 80px;
-    border-radius: 8px;
-    overflow: hidden;
-    flex-shrink: 0;
-}
-
-.project-image-small img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.project-placeholder-small {
-    width: 100%;
-    height: 100%;
-    background: var(--bg-card);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    color: var(--text-muted);
-}
-
-.project-info {
-    flex: 1;
-}
-
-.project-title-link {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text-primary);
-    text-decoration: none;
-    display: block;
-    margin-bottom: 0.5rem;
-}
-
-.project-title-link:hover {
-    color: var(--accent-primary);
-}
-
-.project-meta {
-    display: flex;
-    gap: 1.5rem;
-    font-size: 13px;
-    color: var(--text-secondary);
-}
-
-.project-meta span {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-}
-
-.project-actions-dash {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.project-action-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    background: transparent;
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.project-action-btn:hover {
-    background: var(--bg-card);
-    border-color: var(--accent-primary);
-    color: var(--accent-primary);
-}
-
-/* Sidebar */
-.dashboard-sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.sidebar-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 1.5rem;
-}
-
-.sidebar-card h3 {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 1rem;
-}
-
-/* Messages List */
-.messages-list-dash {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.message-item-dash {
-    display: flex;
-    gap: 0.75rem;
-    padding: 0.875rem;
-    background: var(--bg-tertiary);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.2s;
-    text-decoration: none;
-    color: inherit;
-}
-
-.message-item-dash:hover {
-    background: var(--bg-hover);
-}
-
-.message-avatar-dash {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    overflow: hidden;
-    flex-shrink: 0;
-}
-
-.message-avatar-dash img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.message-avatar-placeholder-dash {
-    width: 100%;
-    height: 100%;
-    background: var(--accent-primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    font-weight: 600;
-    color: white;
-}
-
-.message-content-dash {
-    flex: 1;
-    min-width: 0;
-}
-
-.message-sender {
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-    display: flex;
-    justify-content: space-between;
-}
-
-.message-time {
-    font-size: 11px;
-    color: var(--text-muted);
-}
-
-.message-preview {
-    font-size: 13px;
-    color: var(--text-secondary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Notifications List */
-.notifications-list-dash {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.notification-item-dash {
-    padding: 1rem;
-    background: var(--bg-tertiary);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.2s;
-    border-left: 3px solid transparent;
-}
-
-.notification-item-dash.unread {
-    background: rgba(16, 185, 129, 0.05);
-    border-left-color: var(--accent-primary);
-}
-
-.notification-item-dash:hover {
-    background: var(--bg-hover);
-}
-
-.notification-title-dash {
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 0.375rem;
-}
-
-.notification-content-dash {
-    font-size: 13px;
-    color: var(--text-secondary);
-    margin-bottom: 0.375rem;
-}
-
-.notification-time-dash {
-    font-size: 11px;
-    color: var(--text-muted);
-}
-
-/* Join Requests */
-.join-requests-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.join-request-item {
-    padding: 1.25rem;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-}
-
-.join-request-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.join-request-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    overflow: hidden;
-}
-
-.join-request-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.join-request-info h4 {
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-}
-
-.join-request-project {
-    font-size: 13px;
-    color: var(--text-secondary);
-}
-
-.join-request-message {
-    font-size: 14px;
-    color: var(--text-secondary);
-    line-height: 1.5;
-    margin-bottom: 1rem;
-}
-
-.join-request-actions {
-    display: flex;
-    gap: 0.75rem;
-}
-
-.join-request-actions .btn {
-    flex: 1;
-    padding: 0.625rem;
-    font-size: 13px;
-}
-
-/* Empty State */
-.empty-state-dash {
-    text-align: center;
-    padding: 3rem 2rem;
-    color: var(--text-muted);
-}
-
-.empty-state-dash i {
-    font-size: 48px;
-    margin-bottom: 1rem;
-    opacity: 0.3;
-}
-
-.empty-state-dash p {
-    font-size: 14px;
-}
-
-/* Mobile Responsive */
-@media (max-width: 1200px) {
-    .dashboard-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 768px) {
     .dashboard-container {
-        padding: 1rem;
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 2rem;
     }
 
     .dashboard-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .dashboard-greeting h1 {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .dashboard-greeting p {
+        color: var(--text-secondary);
+        font-size: 15px;
     }
 
     .dashboard-actions {
-        width: 100%;
-        flex-direction: column;
-    }
-
-    .dashboard-actions .btn {
-        width: 100%;
-    }
-
-    .stats-overview {
-        grid-template-columns: repeat(2, 1fr);
+        display: flex;
         gap: 1rem;
     }
 
+    /* Stats Grid */
+    .stats-overview {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
     .stat-card {
-        padding: 1.25rem;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.75rem;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--accent-primary);
+    }
+
+    .stat-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+
+    .stat-icon.projects {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+
+    .stat-icon.joined {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--accent-primary);
+    }
+
+    .stat-icon.supported {
+        background: rgba(236, 72, 153, 0.1);
+        color: #ec4899;
+    }
+
+    .stat-icon.messages {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+
+    .stat-icon.notifications {
+        background: rgba(139, 92, 246, 0.1);
+        color: #8b5cf6;
     }
 
     .stat-value {
-        font-size: 28px;
+        font-size: 36px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+
+    .stat-badge {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 0.25rem 0.625rem;
+        border-radius: 12px;
+    }
+
+    /* Main Content Grid */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 2rem;
+    }
+
+    .dashboard-main {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
     }
 
     .dashboard-section {
-        padding: 1.5rem;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 2rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-header h2 {
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+    .section-link {
+        color: var(--accent-primary);
+        font-size: 14px;
+        text-decoration: none;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-link:hover {
+        text-decoration: underline;
+    }
+
+    /* Project List */
+    .project-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
     }
 
     .project-item {
-        flex-direction: column;
-        align-items: flex-start;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 1.25rem;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        transition: all 0.2s;
+    }
+
+    .project-item:hover {
+        background: var(--bg-hover);
+        border-color: var(--border-hover);
     }
 
     .project-image-small {
-        width: 100%;
-        height: 150px;
+        width: 80px;
+        height: 80px;
+        border-radius: 8px;
+        overflow: hidden;
+        flex-shrink: 0;
     }
-}
 
-@media (max-width: 480px) {
-    .stats-overview {
-        grid-template-columns: 1fr;
+    .project-image-small img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .project-placeholder-small {
+        width: 100%;
+        height: 100%;
+        background: var(--bg-card);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: var(--text-muted);
+    }
+
+    .project-info {
+        flex: 1;
+    }
+
+    .project-title-link {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary);
+        text-decoration: none;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .project-title-link:hover {
+        color: var(--accent-primary);
     }
 
     .project-meta {
-        flex-wrap: wrap;
+        display: flex;
+        gap: 1.5rem;
+        font-size: 13px;
+        color: var(--text-secondary);
     }
-}
+
+    .project-meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+
+    .project-actions-dash {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .project-action-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: transparent;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .project-action-btn:hover {
+        background: var(--bg-card);
+        border-color: var(--accent-primary);
+        color: var(--accent-primary);
+    }
+
+    /* Sidebar */
+    .dashboard-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .sidebar-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+
+    .sidebar-card h3 {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    /* Messages List */
+    .messages-list-dash {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .message-item-dash {
+        display: flex;
+        gap: 0.75rem;
+        padding: 0.875rem;
+        background: var(--bg-tertiary);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.2s;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .message-item-dash:hover {
+        background: var(--bg-hover);
+    }
+
+    .message-avatar-dash {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .message-avatar-dash img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .message-avatar-placeholder-dash {
+        width: 100%;
+        height: 100%;
+        background: var(--accent-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: 600;
+        color: white;
+    }
+
+    .message-content-dash {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .message-sender {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .message-time {
+        font-size: 11px;
+        color: var(--text-muted);
+    }
+
+    .message-preview {
+        font-size: 13px;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Notifications List */
+    .notifications-list-dash {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .notification-item-dash {
+        padding: 1rem;
+        background: var(--bg-tertiary);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.2s;
+        border-left: 3px solid transparent;
+    }
+
+    .notification-item-dash.unread {
+        background: rgba(16, 185, 129, 0.05);
+        border-left-color: var(--accent-primary);
+    }
+
+    .notification-item-dash:hover {
+        background: var(--bg-hover);
+    }
+
+    .notification-title-dash {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 0.375rem;
+    }
+
+    .notification-content-dash {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-bottom: 0.375rem;
+    }
+
+    .notification-time-dash {
+        font-size: 11px;
+        color: var(--text-muted);
+    }
+
+    /* Join Requests */
+    .join-requests-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .join-request-item {
+        padding: 1.25rem;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+    }
+
+    .join-request-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .join-request-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        overflow: hidden;
+    }
+
+    .join-request-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .join-request-info h4 {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .join-request-project {
+        font-size: 13px;
+        color: var(--text-secondary);
+    }
+
+    .join-request-message {
+        font-size: 14px;
+        color: var(--text-secondary);
+        line-height: 1.5;
+        margin-bottom: 1rem;
+    }
+
+    .join-request-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .join-request-actions .btn {
+        flex: 1;
+        padding: 0.625rem;
+        font-size: 13px;
+    }
+
+    /* Empty State */
+    .empty-state-dash {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--text-muted);
+    }
+
+    .empty-state-dash i {
+        font-size: 48px;
+        margin-bottom: 1rem;
+        opacity: 0.3;
+    }
+
+    .empty-state-dash p {
+        font-size: 14px;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 1200px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 1rem;
+        }
+
+        .dashboard-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .dashboard-actions {
+            width: 100%;
+            flex-direction: column;
+        }
+
+        .dashboard-actions .btn {
+            width: 100%;
+        }
+
+        .stats-overview {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .stat-card {
+            padding: 1.25rem;
+        }
+
+        .stat-value {
+            font-size: 28px;
+        }
+
+        .dashboard-section {
+            padding: 1.5rem;
+        }
+
+        .project-item {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .project-image-small {
+            width: 100%;
+            height: 150px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .stats-overview {
+            grid-template-columns: 1fr;
+        }
+
+        .project-meta {
+            flex-wrap: wrap;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -613,11 +613,11 @@
                     <div class="project-item">
                         <div class="project-image-small">
                             {% if project.cover_image %}
-                                <img src="{{ project.cover_image.url }}" alt="{{ project.title }}">
+                            <img src="{{ project.cover_image.url }}" alt="{{ project.title }}">
                             {% else %}
-                                <div class="project-placeholder-small">
-                                    <i class="fas fa-project-diagram"></i>
-                                </div>
+                            <div class="project-placeholder-small">
+                                <i class="fas fa-project-diagram"></i>
+                            </div>
                             {% endif %}
                         </div>
                         <div class="project-info">
@@ -667,11 +667,11 @@
                     <div class="project-item">
                         <div class="project-image-small">
                             {% if project.cover_image %}
-                                <img src="{{ project.cover_image.url }}" alt="{{ project.title }}">
+                            <img src="{{ project.cover_image.url }}" alt="{{ project.title }}">
                             {% else %}
-                                <div class="project-placeholder-small">
-                                    <i class="fas fa-project-diagram"></i>
-                                </div>
+                            <div class="project-placeholder-small">
+                                <i class="fas fa-project-diagram"></i>
+                            </div>
                             {% endif %}
                         </div>
                         <div class="project-info">
@@ -694,6 +694,49 @@
             </div>
             {% endif %}
 
+            <!-- Saved Projects -->
+            {% if saved_projects %}
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2>Saved Projects</h2>
+                </div>
+
+                <div class="project-list">
+                    {% for project in saved_projects %}
+                    <div class="project-item">
+                        <div class="project-image-small">
+                            {% if project.cover_image %}
+                            <img src="{{ project.cover_image.url }}" alt="{{ project.title }}">
+                            {% else %}
+                            <div class="project-placeholder-small">
+                                <i class="fas fa-project-diagram"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="project-info">
+                            <a href="{% url 'project_detail' project.slug %}" class="project-title-link">
+                                {{ project.title }}
+                            </a>
+                            <div class="project-meta">
+                                <span>by {{ project.creator.username }}</span>
+                                <span><i class="fas fa-users"></i> {{ project.members.count }} members</span>
+                            </div>
+                        </div>
+                        <div class="project-actions-dash">
+                            <a href="{% url 'project_detail' project.slug %}" class="project-action-btn" title="View">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <button class="project-action-btn" onclick="bookmarkProject('{{ project.slug }}', this)"
+                                title="Remove Bookmark">
+                                <i class="fas fa-bookmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Join Requests -->
             {% if join_requests %}
             <div class="dashboard-section">
@@ -708,9 +751,10 @@
                         <div class="join-request-header">
                             <div class="join-request-avatar">
                                 {% if request.user.profile_image %}
-                                    <img src="{{ request.user.profile_image.url }}" alt="{{ request.user.username }}">
+                                <img src="{{ request.user.profile_image.url }}" alt="{{ request.user.username }}">
                                 {% else %}
-                                    <div class="message-avatar-placeholder-dash">{{ request.user.username|first|upper }}</div>
+                                <div class="message-avatar-placeholder-dash">{{ request.user.username|first|upper }}
+                                </div>
                                 {% endif %}
                             </div>
                             <div class="join-request-info">
@@ -725,7 +769,8 @@
                             {{ request.message }}
                         </div>
                         <div class="join-request-actions">
-                            <form method="post" action="{% url 'project_detail' request.project.slug %}" style="flex: 1;">
+                            <form method="post" action="{% url 'project_detail' request.project.slug %}"
+                                style="flex: 1;">
                                 {% csrf_token %}
                                 <input type="hidden" name="request_id" value="{{ request.id }}">
                                 <input type="hidden" name="action" value="accept">
@@ -733,7 +778,8 @@
                                     <i class="fas fa-check"></i> Accept
                                 </button>
                             </form>
-                            <form method="post" action="{% url 'project_detail' request.project.slug %}" style="flex: 1;">
+                            <form method="post" action="{% url 'project_detail' request.project.slug %}"
+                                style="flex: 1;">
                                 {% csrf_token %}
                                 <input type="hidden" name="request_id" value="{{ request.id }}">
                                 <input type="hidden" name="action" value="reject">
@@ -760,9 +806,9 @@
                     <a href="{% url 'messages' %}" class="message-item-dash">
                         <div class="message-avatar-dash">
                             {% if message.sender.profile_image %}
-                                <img src="{{ message.sender.profile_image.url }}" alt="{{ message.sender.username }}">
+                            <img src="{{ message.sender.profile_image.url }}" alt="{{ message.sender.username }}">
                             {% else %}
-                                <div class="message-avatar-placeholder-dash">{{ message.sender.username|first|upper }}</div>
+                            <div class="message-avatar-placeholder-dash">{{ message.sender.username|first|upper }}</div>
                             {% endif %}
                         </div>
                         <div class="message-content-dash">
@@ -793,7 +839,7 @@
                 <div class="notifications-list-dash">
                     {% for notification in notifications %}
                     <a href="{% if notification.link %}{{ notification.link }}{% else %}{% url 'notifications' %}{% endif %}"
-                       class="notification-item-dash {% if not notification.is_read %}unread{% endif %}">
+                        class="notification-item-dash {% if not notification.is_read %}unread{% endif %}">
                         <div class="notification-title-dash">{{ notification.title }}</div>
                         <div class="notification-content-dash">{{ notification.content|truncatewords:10 }}</div>
                         <div class="notification-time-dash">{{ notification.created_at|timesince }} ago</div>
@@ -828,17 +874,18 @@
                         <i class="fas fa-user-edit"></i> Edit Profile
                     </a>
 
-                <!-- Admin Only -->
-                {% if user.is_staff %}
-                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-                    <a href="{% url 'create_daily_post' %}" class="btn btn-primary btn-full">
-                        <i class="fas fa-star"></i> Create Daily Post
-                    </a>
-                    <a href="{% url 'manage_daily_posts' %}" class="btn btn-outline btn-full" style="margin-top: 0.75rem;">
-                        <i class="fas fa-list"></i> Manage Daily Posts
-                    </a>
-                </div>
-                {% endif %}
+                    <!-- Admin Only -->
+                    {% if user.is_staff %}
+                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                        <a href="{% url 'create_daily_post' %}" class="btn btn-primary btn-full">
+                            <i class="fas fa-star"></i> Create Daily Post
+                        </a>
+                        <a href="{% url 'manage_daily_posts' %}" class="btn btn-outline btn-full"
+                            style="margin-top: 0.75rem;">
+                            <i class="fas fa-list"></i> Manage Daily Posts
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -846,22 +893,70 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
-<script>
-// Auto-refresh notifications count
-function updateNotificationCount() {
-    fetch('/api/notifications/unread_count/')
-        .then(response => response.json())
-        .then(data => {
-            const badge = document.querySelector('.stat-badge');
-            if (badge && data.unread_count > 0) {
-                badge.textContent = data.unread_count;
+    {% block extra_js %}
+    <script>
+    // Auto-refresh notifications count
+        function updateNotificationCount() {
+            fetch('/api/notifications/unread_count/')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.querySelector('.stat-badge');
+                    if (badge && data.unread_count > 0) {
+                        badge.textContent = data.unread_count;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+    }
+
+        // Auto-refresh notifications count
+    function updateNotificationCount() {
+        fetch('/api/notifications/unread_count/')
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.querySelector('.stat-badge');
+                if (badge && data.unread_count > 0) {
+                    badge.textContent = data.unread_count;
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    // Refresh every 30 seconds
+    setInterval(updateNotificationCount, 30000);
+
+    function bookmarkProject(slug, btn) {
+        fetch(`/projects/${slug}/bookmark/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
             }
         })
-        .catch(error => console.error('Error:', error));
-}
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const icon = btn.querySelector('i');
+                    if (data.bookmarked) {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                    } else {
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
 
-// Refresh every 30 seconds
-setInterval(updateNotificationCount, 30000);
+                        // If in Saved Projects section, remove the item
+                        const sectionHeader = btn.closest('.dashboard-section').querySelector('.section-header h2');
+                        if (sectionHeader && sectionHeader.textContent.trim() === 'Saved Projects') {
+                            const projectItem = btn.closest('.project-item');
+                            if (projectItem) {
+                                projectItem.style.opacity = '0';
+                                setTimeout(() => projectItem.remove(), 300);
+                            }
+                        }
+                    }
+                    showToast(data.message);
+                }
+            });
+    }
+
 </script>
 {% endblock %}
