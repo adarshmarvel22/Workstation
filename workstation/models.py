@@ -32,6 +32,12 @@ class User(AbstractUser):
         blank=True
     )
 
+    saved_projects = models.ManyToManyField(
+        'Project',
+        blank=True,
+        related_name='saved_by_users'
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
