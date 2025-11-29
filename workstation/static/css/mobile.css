@@ -537,6 +537,9 @@
 }
 
 @media (max-width: 768px) {
+    .network-container .main-area{
+        width: 90% !important;
+    }
     .dashboard-sidebar{
         width: 100% !important;
     }
