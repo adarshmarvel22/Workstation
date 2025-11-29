@@ -537,6 +537,9 @@
 }
 
 @media (max-width: 768px) {
+    .dashboard-sidebar{
+        width: 100% !important;
+    }
     .dashboard-grid {
         display: flex !important;
         flex-direction: column !important;
